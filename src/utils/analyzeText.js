@@ -1,4 +1,4 @@
-const stopWords = require("./stopWords");
+const { stopWords } = require("./textData");
 
 function analyzeText(text) {
   text = text.replace(/(?:https?|ftp):\/\/[\w\S]+/g, ""); // Remove URLs
@@ -13,4 +13,4 @@ function analyzeText(text) {
   return tokens;
 }
 
-module.exports = { analyzeText };
+module.exports = analyzeText;
