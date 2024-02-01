@@ -87,7 +87,7 @@ async function crawlPage(url) {
     tag = "";
   }
 
-  const video = {
+  const newVideo = {
     youtubeVideoId,
     title,
     description,
@@ -97,15 +97,7 @@ async function crawlPage(url) {
     tag,
   };
 
-  await Video.create({
-    youtubeVideoId: video.youtubeVideoId,
-    title: video.title,
-    description: video.description,
-    channel: video.channel,
-    transcript: video.transcript,
-    thumbnailURL: video.thumbnailURL,
-    tag: video.tag,
-  });
+  await Video.create(newVideo);
 
   console.log(`Inserted ${url} into the database`);
   await browser.close();
