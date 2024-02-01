@@ -723,4 +723,35 @@ const stopWords = [
   "zero",
 ];
 
-module.exports = stopWords;
+const suffixes = {
+  ational: "ate",
+  tional: "tion",
+  enci: "ence",
+  anci: "ance",
+  izer: "ize",
+  bli: "ble",
+  alli: "al",
+  entli: "ent",
+  eli: "e",
+  ousli: "ous",
+  ization: "ize",
+  ation: "ate",
+  ator: "ate",
+  alism: "al",
+  iveness: "ive",
+  fulness: "ful",
+  ousness: "ous",
+  aliti: "al",
+  iviti: "ive",
+  biliti: "ble",
+  logi: "log",
+  icate: "ic",
+  ative: "",
+  alize: "al",
+  iciti: "ic",
+  ical: "ic",
+  ful: "",
+  ness: "",
+};
+
+module.exports = { stopWords, suffixes };
