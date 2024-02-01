@@ -1,4 +1,4 @@
-const stopWords = [
+const STOP_WORDS = [
   "a",
   "about",
   "above",
@@ -723,7 +723,7 @@ const stopWords = [
   "zero",
 ];
 
-const suffixes = {
+const SUFFIXES = {
   ational: "ate",
   tional: "tion",
   enci: "ence",
@@ -754,4 +754,4 @@ const suffixes = {
   ness: "",
 };
 
-module.exports = { stopWords, suffixes };
+module.exports = { STOP_WORDS, SUFFIXES };
