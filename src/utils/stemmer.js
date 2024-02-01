@@ -1,15 +1,15 @@
-const { suffixes } = require("./textData");
+const { SUFFIXES } = require("../constants/wordData");
 
 const c = "[^aeiou]";
 const v = "[aeiouy]";
 const C = `${c}[^aeiouy]*`;
-const V = `{v}[aeiou]*`;
+const V = `${v}[aeiou]*`;
 const regexMGreater0 = new RegExp(`^(${C})?${V}${C}`);
 const regexMEqual1 = new RegExp(`^(${C})?${V}${C}(${V})?$`);
 const regexMGreater1 = new RegExp(`^(${C})?${V}${C}${V}${C}`);
 const regexStemVowel = new RegExp(`^(${C})?${v}`);
-const endsWithDoubleConsonant = /([^aeiouylsz])\1$/;
-const stemEndCVC = new RegExp(`^${C}${v}[^aeiouwxy]$`);
+const regexEndsWithDoubleConsonant = /([^aeiouylsz])\1$/;
+const regexStemEndCVC = new RegExp(`^${C}${v}[^aeiouwxy]$`);
 
 function stemWord(word) {
   const firstCharacter = word.slice(0, 1);
@@ -19,7 +19,7 @@ function stemWord(word) {
   }
 
   if (firstCharacter === "y") {
-    word = firstCharacter.toUpperCase() + word.substr(1);
+    word = firstCharacter.toUpperCase() + word.slice(1);
   }
 
   const step1A = [/^(.+?)(ss|i)es$/, /^(.+?)([^s])s$/];
@@ -46,9 +46,9 @@ function stemWord(word) {
 
       if (/(at|bl|iz)$/.test(word)) {
         word += "e";
-      } else if (endsWithDoubleConsonant.test(word)) {
+      } else if (regexEndsWithDoubleConsonant.test(word)) {
         word = word.replace(/.$/, "");
-      } else if (stemEndCVC.test(word)) {
+      } else if (regexStemEndCVC.test(word)) {
         word += "e";
       }
     }
@@ -69,7 +69,7 @@ function stemWord(word) {
     const suffix = step2.exec(word)[2];
 
     if (regexMGreater0.test(stem)) {
-      word = stem + suffixes[suffix];
+      word = stem + SUFFIXES[suffix];
     }
   }
 
@@ -79,7 +79,7 @@ function stemWord(word) {
     const suffix = step3.exec(word)[2];
 
     if (regexMGreater0.test(stem)) {
-      word = stem + suffixes[suffix];
+      word = stem + SUFFIXES[suffix];
     }
   }
 
@@ -109,18 +109,18 @@ function stemWord(word) {
 
     if (
       regexMGreater1.test(stem) ||
-      (regexMEqual1.test(stem) && !stemEndCVC.test(stem))
+      (regexMEqual1.test(stem) && !regexStemEndCVC.test(stem))
     ) {
       word = stem;
     }
   }
 
-  if (endsWithDoubleConsonant.test(word) && regexMGreater1.test(word)) {
+  if (regexEndsWithDoubleConsonant.test(word) && regexMGreater1.test(word)) {
     word = word.replace(/.$/, "");
   }
 
   if (firstCharacter === "y") {
-    word = firstCharacter.toLowerCase() + word.substr(1);
+    word = firstCharacter.toLowerCase() + word.slice(1);
   }
 
   return word;
