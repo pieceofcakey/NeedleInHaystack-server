@@ -3,14 +3,8 @@ const OriginalKeyword = require("../models/OriginalKeyword");
 const analyzeText = require("./analyzeText");
 const stemWord = require("./stemmer");
 
-async function invertIndexing(video) {
-  const fullText =
-    video.title +
-    video.description +
-    video.channel +
-    video.transcript +
-    video.tag;
-
+async function invertIndex(video) {
+  const fullText = `${video.title} ${video.description} ${video.channel} ${video.transcript} ${video.tag}`;
   const tokens = [...new Set(analyzeText(fullText))];
 
   const originalKeywordsPromises = tokens.map(async (token) => {
@@ -44,4 +38,4 @@ async function invertIndexing(video) {
   await Promise.all(keywordsPromises);
 }
 
-module.exports = invertIndexing;
+module.exports = invertIndex;
