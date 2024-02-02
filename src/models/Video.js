@@ -14,6 +14,10 @@ const videoSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  channel: {
+    type: String,
+    required: true,
+  },
   transcript: {
     type: String,
     required: true,
@@ -29,6 +33,7 @@ const videoSchema = new mongoose.Schema({
 });
 
 videoSchema.pre("validate", function (next) {
+  this.description = this.description || " ";
   this.transcript = this.transcript || " ";
   this.tag = this.tag || " ";
   next();
