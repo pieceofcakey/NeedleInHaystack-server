@@ -4,26 +4,22 @@ const puppeteer = require("puppeteer");
 const Video = require("../models/Video");
 const mongooseLoader = require("../loaders/mongoose");
 
-const DEFAULT_TAG_NAME_EN =
-  "video, sharing, camera phone, video phone, free, upload";
-const DEFAULT_TAG_NAME_KR = "동영상, 공유, 카메라폰, 동영상폰, 무료, 올리기";
-const htmlEntryURL = "https://www.youtube.com/watch?v=ok-plXXHlWw";
-const cssEntryURL = "https://www.youtube.com/watch?v=OEV8gMkCHXQ";
-const javascriptEntryURL = "https://www.youtube.com/watch?v=W6NZfCO5SIk";
-const moreButtonSelector = "#expand";
-const showTranscriptSelector =
-  "#primary-button > ytd-button-renderer > yt-button-shape > button > yt-touch-feedback-shape > div > div.yt-spec-touch-feedback-shape__fill";
-const showMoreButtonSelector =
-  "#button > ytd-button-renderer > yt-button-shape > button";
-const linksSelector =
-  "#dismissible > div > div.metadata.style-scope.ytd-compact-video-renderer > a";
-const titleSelector = "#title > h1 > yt-formatted-string";
-const descriptionSelector =
-  "#description-inline-expander > yt-attributed-string > span > span:nth-child(1)";
-const channelSelector = "#text > a";
-const transcriptSelector =
-  "#segments-container > ytd-transcript-segment-renderer yt-formatted-string";
-const metaSelector = "meta";
+const {
+  DEFAULT_TAG_NAME_EN,
+  DEFAULT_TAG_NAME_KR,
+  htmlEntryURL,
+  cssEntryURL,
+  javascriptEntryURL,
+  moreButtonSelector,
+  showTranscriptSelector,
+  showMoreButtonSelector,
+  linksSelector,
+  titleSelector,
+  descriptionSelector,
+  channelSelector,
+  transcriptSelector,
+  metaSelector,
+} = require("./../constants/crawlerConstants");
 
 const linksQueue = [];
 
@@ -32,8 +28,10 @@ const linksQueue = [];
 })();
 
 async function crawl(url) {
-  const newVideoObj = {};
-  newVideoObj.youtubeVideoId = url.split("=")[1];
+  const newVideoObj = {
+    youtubeVideoId: url.split("=")[1],
+  };
+
   const browser = await puppeteer.launch({
     headless: "new",
   });
@@ -74,11 +72,11 @@ async function crawl(url) {
   });
 
   for (const link of links) {
-    const hasVisited = await Video.findOne({
+    const videoData = await Video.findOne({
       youtubeVideoId: link.split("=")[1],
     });
 
-    if (!hasVisited) {
+    if (!videoData) {
       linksQueue.push(link);
     }
   }
