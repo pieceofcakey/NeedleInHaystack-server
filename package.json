@@ -14,7 +14,8 @@
     "dotenv": "^16.4.1",
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
-    "mongoose": "^8.1.1"
+    "mongoose": "^8.1.1",
+    "puppeteer": "^21.10.0"
   },
   "devDependencies": {
     "eslint": "^8.56.0",
