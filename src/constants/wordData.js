@@ -1,4 +1,5 @@
 const STOP_WORDS = [
+  "",
   "a",
   "about",
   "above",
