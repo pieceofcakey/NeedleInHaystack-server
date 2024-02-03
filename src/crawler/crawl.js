@@ -2,8 +2,10 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../../.env") });
 const puppeteer = require("puppeteer");
 const Video = require("../models/Video");
+
 const mongooseLoader = require("../loaders/mongoose");
 const analyzeText = require("../utils/analyzeText");
+const invertIndex = require("../utils/invertIndex");
 
 const {
   DEFAULT_TAG_NAME_EN,
@@ -20,7 +22,7 @@ const {
   CHANNEL_SELECTOR,
   TRANSCRIPT_SELECTOR,
   META_SELECTOR,
-} = require("./../constants/crawlerConstants");
+} = require("../constants/crawlerConstants");
 
 const linksQueue = [];
 
@@ -72,7 +74,7 @@ async function crawl(url) {
       .slice(0, 5);
   });
 
-  for (const link of links) {
+  const linksPromises = links.map(async (link) => {
     const videoData = await Video.findOne({
       youtubeVideoId: link.split("=")[1],
     });
@@ -80,7 +82,9 @@ async function crawl(url) {
     if (!videoData) {
       linksQueue.push(link);
     }
-  }
+  });
+
+  await Promise.all(linksPromises);
 
   const newURL = linksQueue.shift();
 
@@ -154,7 +158,8 @@ async function crawl(url) {
   await browser.close();
 
   try {
-    await Video.create(newVideoObject);
+    const video = await Video.create(newVideoObject);
+    await invertIndex(video);
     console.log(`Inserted ${url} into DB.`);
   } catch (error) {
     console.error(error);
