@@ -29,7 +29,7 @@ const linksQueue = [];
 })();
 
 async function crawl(url) {
-  const newVideoObj = {
+  const newVideoObject = {
     youtubeVideoId: url.split("=")[1],
   };
 
@@ -85,7 +85,7 @@ async function crawl(url) {
   const newURL = linksQueue.shift();
 
   try {
-    newVideoObj.title = await page.$eval(
+    newVideoObject.title = await page.$eval(
       TITLE_SELECTOR,
       (element) => element.textContent,
     );
@@ -94,7 +94,7 @@ async function crawl(url) {
   }
 
   try {
-    newVideoObj.description = await page.$eval(
+    newVideoObject.description = await page.$eval(
       DESCRIPTION_SELECTOR,
       (element) => element.textContent,
     );
@@ -103,7 +103,7 @@ async function crawl(url) {
   }
 
   try {
-    newVideoObj.channel = await page.$eval(
+    newVideoObject.channel = await page.$eval(
       CHANNEL_SELECTOR,
       (element) => element.textContent,
     );
@@ -115,7 +115,7 @@ async function crawl(url) {
     elements.map((element) => element.textContent),
   );
 
-  newVideoObj.transcript = transcripts.join(" ");
+  newVideoObject.transcript = transcripts.join(" ");
 
   const metaTags = await page.$$eval(META_SELECTOR, (elements) => {
     const result = { thumbnailURL: "", tag: "" };
@@ -136,25 +136,25 @@ async function crawl(url) {
     return result;
   });
 
-  newVideoObj.thumbnailURL = metaTags.thumbnailURL;
-  newVideoObj.tag = metaTags.tag;
+  newVideoObject.thumbnailURL = metaTags.thumbnailURL;
+  newVideoObject.tag = metaTags.tag;
 
   if (
-    newVideoObj.tag === DEFAULT_TAG_NAME_EN ||
-    newVideoObj.tag === DEFAULT_TAG_NAME_KR
+    newVideoObject.tag === DEFAULT_TAG_NAME_EN ||
+    newVideoObject.tag === DEFAULT_TAG_NAME_KR
   ) {
-    newVideoObj.tag = "";
+    newVideoObject.tag = "";
   }
 
-  const fullText = `${newVideoObj.title} ${newVideoObj.description} ${newVideoObj.channel} ${newVideoObj.transcript} ${newVideoObj.tag}`;
+  const fullText = `${newVideoObject.title} ${newVideoObject.description} ${newVideoObject.channel} ${newVideoObject.transcript} ${newVideoObject.tag}`;
   const tokens = [...new Set(analyzeText(fullText))];
 
-  newVideoObj.documentLength = tokens.length;
+  newVideoObject.documentLength = tokens.length;
 
   await browser.close();
 
   try {
-    await Video.create(newVideoObj);
+    await Video.create(newVideoObject);
     console.log(`Inserted ${url} into DB.`);
   } catch (error) {
     console.error(error);
