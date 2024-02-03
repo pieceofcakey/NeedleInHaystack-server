@@ -2,7 +2,7 @@ const Query = require("../models/Query");
 
 exports.getAutoCompletions = async function (req, res, next) {
   const histories = [];
-  const userInput = req.query.keywords;
+  const userInput = req.query.userInput;
 
   try {
     const matchingHistories = await Query.find(
