@@ -9,6 +9,7 @@ const B = 0.75;
 
 async function getAverageDocumentLength() {
   const videos = await Video.find({});
+  const totalVideos = await Video.estimatedDocumentCount();
   let averageDocumentLength = 0;
 
   videos.forEach((video) => {
@@ -19,7 +20,7 @@ async function getAverageDocumentLength() {
     averageDocumentLength += words.length;
   });
 
-  return averageDocumentLength;
+  return averageDocumentLength / totalVideos;
 }
 
 async function calculateRank(query) {
