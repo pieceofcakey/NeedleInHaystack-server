@@ -1,10 +1,11 @@
 const calculateRank = require("../utils/calculateRank");
 
 exports.searchVideos = async function (req, res, next) {
-  const { query } = req.body;
+  const { query, shouldSpellCheck } = req.query;
 
   try {
-    const ranks = calculateRank(query);
+    const ranks = await calculateRank(query);
+
     res.status(200).send(ranks);
   } catch (error) {
     console.log(error);

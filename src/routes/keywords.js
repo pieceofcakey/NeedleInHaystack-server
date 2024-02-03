@@ -5,3 +5,5 @@ const videoController = require("../controllers/video.controller");
 const router = express.Router();
 
 router.get("/", videoController.searchVideos);
+
+module.exports = router;
