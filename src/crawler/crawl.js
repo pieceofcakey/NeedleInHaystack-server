@@ -3,17 +3,36 @@ require("dotenv").config({ path: path.join(__dirname, "../../.env") });
 const puppeteer = require("puppeteer");
 const Video = require("../models/Video");
 const mongooseLoader = require("../loaders/mongoose");
+const analyzeText = require("../utils/analyzeText");
 
-const DEFAULT_TAG_NAME_EN =
-  "video, sharing, camera phone, video phone, free, upload";
-const DEFAULT_TAG_NAME_KR = "동영상, 공유, 카메라폰, 동영상폰, 무료, 올리기";
+const {
+  DEFAULT_TAG_NAME_EN,
+  DEFAULT_TAG_NAME_KR,
+  HTML_ENTRY_URL,
+  CSS_ENTRY_URL,
+  JAVASCRIPT_ENTRY_URL,
+  MORE_BUTTON_SELECTOR,
+  SHOW_TRANSCRIPT_SELECTOR,
+  SHOW_MORE_BUTTON_SELECTOR,
+  LINKS_SELECTOR,
+  TITLE_SELECTOR,
+  DESCRIPTION_SELECTOR,
+  CHANNEL_SELECTOR,
+  TRANSCRIPT_SELECTOR,
+  META_SELECTOR,
+} = require("./../constants/crawlerConstants");
+
+const linksQueue = [];
 
 (async function () {
   await mongooseLoader();
 })();
 
-async function crawlPage(url) {
-  const youtubeVideoId = url.split("=")[1];
+async function crawl(url) {
+  const newVideoObject = {
+    youtubeVideoId: url.split("=")[1],
+  };
+
   const browser = await puppeteer.launch({
     headless: "new",
   });
@@ -21,88 +40,128 @@ async function crawlPage(url) {
 
   try {
     await page.goto(url, { waitUntil: "networkidle0" });
-    await page.waitForSelector("#expand");
+    await page.waitForSelector(MORE_BUTTON_SELECTOR);
   } catch (error) {
     console.error(error);
   }
 
   try {
-    await page.$eval("#expand", (button) => button.click());
-    await page.waitForSelector(
-      "#primary-button > ytd-button-renderer > yt-button-shape > button > yt-touch-feedback-shape > div > div.yt-spec-touch-feedback-shape__fill",
+    await page.$eval(MORE_BUTTON_SELECTOR, (button) => button.click());
+    await page.waitForSelector(SHOW_TRANSCRIPT_SELECTOR);
+  } catch (error) {
+    console.error(error);
+  }
+
+  try {
+    await page.$eval(SHOW_TRANSCRIPT_SELECTOR, (button) => button.click());
+    await page.waitForSelector(TRANSCRIPT_SELECTOR);
+    await page.waitForSelector(SHOW_MORE_BUTTON_SELECTOR);
+  } catch (error) {
+    console.error(error);
+  }
+
+  try {
+    await page.$eval(SHOW_MORE_BUTTON_SELECTOR, (button) => button.click());
+  } catch (error) {
+    console.error(error);
+  }
+
+  const links = await page.$$eval(LINKS_SELECTOR, (elements) => {
+    return Array.from(elements)
+      .map((element) => element.href)
+      .slice(0, 5);
+  });
+
+  for (const link of links) {
+    const videoData = await Video.findOne({
+      youtubeVideoId: link.split("=")[1],
+    });
+
+    if (!videoData) {
+      linksQueue.push(link);
+    }
+  }
+
+  const newURL = linksQueue.shift();
+
+  try {
+    newVideoObject.title = await page.$eval(
+      TITLE_SELECTOR,
+      (element) => element.textContent,
     );
   } catch (error) {
     console.error(error);
   }
 
   try {
-    await page.$eval(
-      "#primary-button > ytd-button-renderer > yt-button-shape > button > yt-touch-feedback-shape > div > div.yt-spec-touch-feedback-shape__fill",
-      (button) => button.click(),
-    );
-    await page.waitForSelector(
-      "#segments-container > ytd-transcript-segment-renderer yt-formatted-string",
+    newVideoObject.description = await page.$eval(
+      DESCRIPTION_SELECTOR,
+      (element) => element.textContent,
     );
   } catch (error) {
     console.error(error);
   }
 
-  const title = await page.$eval(
-    "#title > h1 > yt-formatted-string",
-    (el) => el.textContent,
+  try {
+    newVideoObject.channel = await page.$eval(
+      CHANNEL_SELECTOR,
+      (element) => element.textContent,
+    );
+  } catch (error) {
+    console.error(error);
+  }
+
+  const transcripts = await page.$$eval(TRANSCRIPT_SELECTOR, (elements) =>
+    elements.map((element) => element.textContent),
   );
-  const description = await page.$eval(
-    "#description-inline-expander > yt-attributed-string > span > span:nth-child(1)",
-    (el) => el.textContent,
-  );
-  const channel = await page.$eval("#text > a", (el) => el.textContent);
-  const transcripts = await page.$$eval(
-    "#segments-container > ytd-transcript-segment-renderer yt-formatted-string",
-    (elements) => elements.map((el) => el.textContent),
-  );
-  const transcript = transcripts.join(" ");
-  const metaTags = await page.$$eval("meta", (elements) => {
+
+  newVideoObject.transcript = transcripts.join(" ");
+
+  const metaTags = await page.$$eval(META_SELECTOR, (elements) => {
     const result = { thumbnailURL: "", tag: "" };
 
-    elements.forEach((el) => {
-      const property = el.getAttribute("property");
-      const name = el.getAttribute("name");
+    elements.forEach((element) => {
+      const property = element.getAttribute("property");
+      const name = element.getAttribute("name");
 
       if (property === "og:image") {
-        result.thumbnailURL = el.getAttribute("content");
+        result.thumbnailURL = element.getAttribute("content");
       }
 
       if (name === "keywords") {
-        result.tag = el.getAttribute("content");
+        result.tag = element.getAttribute("content");
       }
     });
 
     return result;
   });
 
-  const { thumbnailURL } = metaTags;
-  let { tag } = metaTags;
+  newVideoObject.thumbnailURL = metaTags.thumbnailURL;
+  newVideoObject.tag = metaTags.tag;
 
-  if (tag === DEFAULT_TAG_NAME_EN || tag === DEFAULT_TAG_NAME_KR) {
-    tag = "";
+  if (
+    newVideoObject.tag === DEFAULT_TAG_NAME_EN ||
+    newVideoObject.tag === DEFAULT_TAG_NAME_KR
+  ) {
+    newVideoObject.tag = "";
   }
 
-  const newVideo = {
-    youtubeVideoId,
-    title,
-    description,
-    channel,
-    transcript,
-    thumbnailURL,
-    tag,
-  };
+  const fullText = `${newVideoObject.title} ${newVideoObject.description} ${newVideoObject.channel} ${newVideoObject.transcript} ${newVideoObject.tag}`;
+  const tokens = [...new Set(analyzeText(fullText))];
 
-  await Video.create(newVideo);
+  newVideoObject.documentLength = tokens.length;
 
-  console.log(`Inserted ${url} into the database`);
   await browser.close();
+
+  try {
+    await Video.create(newVideoObject);
+    console.log(`Inserted ${url} into DB.`);
+  } catch (error) {
+    console.error(error);
+  }
+
+  crawl(newURL);
 }
 
-console.log("Start crawling");
-
-crawlPage("https://www.youtube.com/watch?v=IkmPjeNKkBQ");
+console.log(`Start crawling`);
+crawl(JAVASCRIPT_ENTRY_URL);
