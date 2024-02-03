@@ -3,6 +3,7 @@ require("dotenv").config({ path: path.join(__dirname, "../../.env") });
 const puppeteer = require("puppeteer");
 const Video = require("../models/Video");
 const mongooseLoader = require("../loaders/mongoose");
+const analyzeText = require("../utils/analyzeText");
 
 const {
   DEFAULT_TAG_NAME_EN,
@@ -144,6 +145,11 @@ async function crawl(url) {
   ) {
     newVideoObj.tag = "";
   }
+
+  const fullText = `${newVideoObj.title} ${newVideoObj.description} ${newVideoObj.channel} ${newVideoObj.transcript} ${newVideoObj.tag}`;
+  const tokens = [...new Set(analyzeText(fullText))];
+
+  newVideoObj.documentLength = tokens.length;
 
   await browser.close();
 

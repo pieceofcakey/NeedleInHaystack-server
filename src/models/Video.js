@@ -30,6 +30,10 @@ const videoSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  documentLength: {
+    type: Number,
+    required: true,
+  },
 });
 
 videoSchema.pre("validate", function (next) {
