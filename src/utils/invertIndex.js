@@ -1,7 +1,7 @@
 const Keyword = require("../models/Keyword");
 const OriginalKeyword = require("../models/OriginalKeyword");
 const analyzeText = require("./analyzeText");
-const stemWord = require("./stemmer");
+const stemWord = require("./stemWord");
 
 async function invertIndex(video) {
   const fullText = `${video.title} ${video.description} ${video.channel} ${video.transcript} ${video.tag}`;
