@@ -19,10 +19,11 @@ exports.searchVideos = async function (req, res, next) {
       });
     }
 
-    res.status(200).send(ranks);
+    res.status(200).send({ result: "ok", videos: ranks, query: userQuery });
   } catch (error) {
     console.log(error);
     res.status(500).json({
+      result: "ng",
       errorMessage:
         "Hmm...something seems to have gone wrong. Maybe try me again in a little bit.",
     });
