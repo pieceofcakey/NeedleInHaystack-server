@@ -10,17 +10,12 @@ const B = 0.75;
 async function getAverageDocumentLength() {
   const videos = await Video.find({});
   const totalVideos = await Video.estimatedDocumentCount();
-  let averageDocumentLength = 0;
+  const totalDocumentLength = videos.reduce(
+    (documentLength, video) => documentLength + video.documentLength,
+    0,
+  );
 
-  videos.forEach((video) => {
-    const fullText = `${video.title} ${video.description} ${video.channel} ${video.transcript} ${video.tag}`;
-    const tokens = [...new Set(analyzeText(fullText))];
-    const words = [...new Set(tokens.map((token) => stemWord(token)))];
-
-    averageDocumentLength += words.length;
-  });
-
-  return averageDocumentLength / totalVideos;
+  return totalDocumentLength / totalVideos;
 }
 
 async function calculateRank(query) {
