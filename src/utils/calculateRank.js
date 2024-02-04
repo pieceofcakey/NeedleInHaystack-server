@@ -75,7 +75,7 @@ async function calculateRank(query) {
   const ranks = Object.keys(scores)
     .map((key) => [key, scores[key]])
     .sort((a, b) => b[1] - a[1]);
-  console.log(ranks);
+
   return ranks;
 }
 
