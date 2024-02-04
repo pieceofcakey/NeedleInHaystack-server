@@ -1,9 +1,9 @@
 const express = require("express");
 
-const videoController = require("../controllers/keywords.controller");
+const videosController = require("../controllers/videos.controller");
 
 const router = express.Router();
 
-router.post("/", videoController.searchVideos);
+router.get("/:video_id", videosController.fetchVideo);
 
 module.exports = router;
