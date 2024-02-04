@@ -1,10 +1,10 @@
 const Video = require("../models/Video");
 
 exports.fetchVideo = async function (req, res, next) {
-  const videoId = req.params.video_id;
+  const youtubeVideoId = req.params.video_id;
 
   try {
-    const video = await Video.findById(videoId);
+    const video = await Video.findOne({ youtubeVideoId });
 
     res.status(200).send({ result: "ok", video });
   } catch (error) {

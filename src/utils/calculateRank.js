@@ -58,8 +58,8 @@ async function calculateRank(query) {
         const denominator =
           termFrequency +
           K1 * (1 - B + B * (videoKeywords.length / averageDocumentLength));
-        scores[video._id] =
-          (scores[video._id] || 0) +
+        scores[video.youtubeVideoId] =
+          (scores[video.youtubeVideoId] || 0) +
           inverseDocumentFrequency * (numerator / denominator);
       });
     }
