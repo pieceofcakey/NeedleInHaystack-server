@@ -8,14 +8,35 @@ const keywordSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  videoIds: {
+  videos: {
     type: [
       {
-        type: Schema.Types.ObjectId,
-        ref: "Video",
+        videoId: {
+          type: Schema.Types.ObjectId,
+          ref: "Video",
+        },
+        youtubeVideoId: {
+          type: String,
+          required: true,
+        },
+        TF: {
+          type: Number,
+          default: 1,
+          required: true,
+        },
+        score: {
+          type: mongoose.Decimal128,
+          default: 0,
+          required: true,
+        },
       },
     ],
     default: [],
+    required: true,
+  },
+  IDF: {
+    type: mongoose.Decimal128,
+    default: 1,
     required: true,
   },
 });
