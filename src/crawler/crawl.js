@@ -5,7 +5,7 @@ const Video = require("../models/Video");
 
 const mongooseLoader = require("../loaders/mongoose");
 const analyzeText = require("../utils/analyzeText");
-const invertIndex = require("../utils/invertIndex");
+const insertDB = require("./insertDB");
 
 const {
   DEFAULT_TAG_NAME_EN,
@@ -151,15 +151,14 @@ async function crawl(url) {
   }
 
   const fullText = `${newVideoObject.title} ${newVideoObject.description} ${newVideoObject.channel} ${newVideoObject.transcript} ${newVideoObject.tag}`;
-  const tokens = [...new Set(analyzeText(fullText))];
+  const tokens = analyzeText(fullText);
 
   newVideoObject.documentLength = tokens.length;
 
   await browser.close();
 
   try {
-    const video = await Video.create(newVideoObject);
-    await invertIndex(video);
+    await insertDB(newVideoObject);
     console.log(`Inserted ${url} into DB.`);
   } catch (error) {
     console.error(error);
