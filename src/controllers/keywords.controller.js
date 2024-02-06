@@ -1,12 +1,15 @@
 const fetchVideosRanks = require("../utils/fetchVideosRanks");
 const Query = require("../models/Query");
+const checkSpelling = require("../utils/checkSpelling");
 
 exports.searchVideos = async function (req, res, next) {
   const { userInput } = req.body;
   const userQuery = userInput.join(" ");
 
+  const correctedInput = await checkSpelling(userQuery);
+
   try {
-    const ranks = await fetchVideosRanks(userQuery);
+    const ranks = await fetchVideosRanks(correctedInput);
     const query = await Query.findOne({ text: userQuery });
 
     if (query) {
