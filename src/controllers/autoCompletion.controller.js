@@ -13,7 +13,9 @@ exports.getAutoCompletions = async function (req, res, next) {
     const matchingHistories = await Query.find(
       { text: { $regex: `^${userInput}`, $options: "i" } },
       {},
-    ).sort({ count: -1 });
+    )
+      .lean()
+      .sort({ count: -1 });
 
     matchingHistories
       .slice(0, MAXIMUM_AUTO_COMPLETIONS)

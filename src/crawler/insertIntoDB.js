@@ -8,7 +8,7 @@ const stemWord = require("../utils/stemWord");
 const { K1, B } = require("../constants/crawlerConstants");
 
 async function saveAverageDocumentLength(video) {
-  const totalVideos = await Video.estimatedDocumentCount();
+  const totalVideos = await Video.estimatedDocumentCount().lean();
   const averageDocumentLength = await DocumentData.findOne({
     name: "averageDocumentLength",
   });
@@ -44,10 +44,10 @@ async function saveOriginalKeywords(tokens) {
 }
 
 async function saveKeywords(video, words, originalWords) {
-  const totalVideos = await Video.estimatedDocumentCount();
+  const totalVideos = await Video.estimatedDocumentCount().lean();
   const averageDocumentLength = await DocumentData.findOne({
     name: "averageDocumentLength",
-  });
+  }).lean();
   const keywordsPromises = words.map(async (word) => {
     const keyword = await Keyword.findOne({ text: word });
 
@@ -63,28 +63,30 @@ async function saveKeywords(video, words, originalWords) {
       );
 
       keyword.videos.forEach((prevVideo) => {
-        const numerator = prevVideo.TF * (K1 + 1);
-        const denominator =
-          prevVideo.TF +
-          K1 *
-            (1 - B + (B * originalWords.length) / averageDocumentLength.value);
-
-        prevVideo.score = (inverseDocumentFrequency * numerator) / denominator;
+        prevVideo.score =
+          (inverseDocumentFrequency * (prevVideo.TF * (K1 + 1))) /
+          (prevVideo.TF +
+            K1 *
+              (1 -
+                B +
+                (B * originalWords.length) / averageDocumentLength.value));
       });
-
-      const numerator = termFrequency * (K1 + 1);
-      const denominator =
-        termFrequency +
-        K1 * (1 - B + (B * originalWords.length) / averageDocumentLength.value);
 
       keyword.videos.push({
         videoId: video._id,
         youtubeVideoId: video.youtubeVideoId,
         TF: termFrequency,
-        score: (inverseDocumentFrequency * numerator) / denominator,
+        score:
+          (inverseDocumentFrequency * (termFrequency * (K1 + 1))) /
+          (termFrequency +
+            K1 *
+              (1 -
+                B +
+                (B * originalWords.length) / averageDocumentLength.value)),
       });
 
       keyword.videos = keyword.videos.sort((a, b) => b.score - a.score);
+      keyword.IDF = inverseDocumentFrequency;
 
       await keyword.save();
     } else {
@@ -106,14 +108,15 @@ async function saveKeywords(video, words, originalWords) {
                   (1 - B + (B * words.length) / averageDocumentLength.value)),
           },
         ],
+        IDF: inverseDocumentFrequency,
       });
     }
   });
 
-  await Promise.allSettled(keywordsPromises);
+  await Promise.all(keywordsPromises);
 }
 
-async function insertDB(newVideoObject) {
+async function insertIntoDB(newVideoObject) {
   const video = await Video.create(newVideoObject);
   const fullText = `${video.title} ${video.description} ${video.channel} ${video.transcript} ${video.tag}`;
   const originalTokens = analyzeText(fullText);
@@ -122,8 +125,8 @@ async function insertDB(newVideoObject) {
   const words = [...new Set(tokens.map((token) => stemWord(token)))];
 
   await saveAverageDocumentLength(video);
-  await saveOriginalKeywords(video, tokens);
+  await saveOriginalKeywords(tokens);
   await saveKeywords(video, words, originalWords);
 }
 
-module.exports = insertDB;
+module.exports = insertIntoDB;
