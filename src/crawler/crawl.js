@@ -5,7 +5,7 @@ const Video = require("../models/Video");
 
 const mongooseLoader = require("../loaders/mongoose");
 const analyzeText = require("../utils/analyzeText");
-const insertDB = require("./insertDB");
+const insertIntoDB = require("./insertIntoDB");
 
 const {
   DEFAULT_TAG_NAME_EN,
@@ -158,7 +158,7 @@ async function crawl(url) {
   await browser.close();
 
   try {
-    await insertDB(newVideoObject);
+    await insertIntoDB(newVideoObject);
     console.log(`Inserted ${url} into DB.`);
   } catch (error) {
     console.error(error);

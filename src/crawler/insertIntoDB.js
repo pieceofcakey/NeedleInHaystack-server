@@ -62,30 +62,28 @@ async function saveKeywords(video, words, originalWords) {
       );
 
       keyword.videos.forEach((prevVideo) => {
-        prevVideo.score =
-          (inverseDocumentFrequency * (prevVideo.TF * (K1 + 1))) /
-          (prevVideo.TF +
-            K1 *
-              (1 -
-                B +
-                (B * originalWords.length) / averageDocumentLength.value));
+        const numerator = prevVideo.TF * (K1 + 1);
+        const denominator =
+          prevVideo.TF +
+          K1 *
+            (1 - B + (B * originalWords.length) / averageDocumentLength.value);
+
+        prevVideo.score = (inverseDocumentFrequency * numerator) / denominator;
       });
+
+      const numerator = termFrequency * (K1 + 1);
+      const denominator =
+        termFrequency +
+        K1 * (1 - B + (B * originalWords.length) / averageDocumentLength.value);
 
       keyword.videos.push({
         videoId: video._id,
         youtubeVideoId: video.youtubeVideoId,
         TF: termFrequency,
-        score:
-          (inverseDocumentFrequency * (termFrequency * (K1 + 1))) /
-          (termFrequency +
-            K1 *
-              (1 -
-                B +
-                (B * originalWords.length) / averageDocumentLength.value)),
+        score: (inverseDocumentFrequency * numerator) / denominator,
       });
 
       keyword.videos = keyword.videos.sort((a, b) => b.score - a.score);
-      keyword.IDF = inverseDocumentFrequency;
 
       await keyword.save();
     } else {
@@ -107,12 +105,11 @@ async function saveKeywords(video, words, originalWords) {
                   (1 - B + (B * words.length) / averageDocumentLength.value)),
           },
         ],
-        IDF: inverseDocumentFrequency,
       });
     }
   });
 
-  await Promise.all(keywordsPromises);
+  await Promise.allSettled(keywordsPromises);
 }
 
 async function insertDB(newVideoObject) {
