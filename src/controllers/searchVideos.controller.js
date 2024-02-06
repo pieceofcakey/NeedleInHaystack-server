@@ -2,8 +2,13 @@ const fetchVideosRanks = require("../utils/fetchVideosRanks");
 const Query = require("../models/Query");
 
 exports.searchVideos = async function (req, res, next) {
-  const { userInput } = req.body;
+  const { userInput, pageParam } = req.body;
   const userQuery = userInput.join(" ");
+
+  if (!userQuery) {
+    res.status(200).send({ result: "ok", videos: [], query: userQuery });
+    return;
+  }
 
   try {
     const ranks = await fetchVideosRanks(userQuery);
@@ -19,7 +24,12 @@ exports.searchVideos = async function (req, res, next) {
       });
     }
 
-    res.status(200).send({ result: "ok", videos: ranks, query: userQuery });
+    res.status(200).send({
+      result: "ok",
+      videos: ranks.slice(10 * pageParam, 10 * pageParam + 10),
+      query: userQuery,
+      nextPage: pageParam + 1,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({
