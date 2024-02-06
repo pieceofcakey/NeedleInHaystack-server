@@ -5,6 +5,10 @@ exports.getAutoCompletions = async function (req, res, next) {
   const { userInput } = req.query;
   const MAXIMUM_AUTO_COMPLETIONS = 5;
 
+  if (!userInput) {
+    return res.status(200).send([]);
+  }
+
   try {
     const matchingHistories = await Query.find(
       { text: { $regex: `^${userInput}`, $options: "i" } },
