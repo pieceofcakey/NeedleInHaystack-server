@@ -1,4 +1,4 @@
-const calculateRank = require("../utils/calculateRank");
+const fetchVideosRanks = require("../utils/fetchVideosRanks");
 const Query = require("../models/Query");
 
 exports.searchVideos = async function (req, res, next) {
@@ -6,7 +6,7 @@ exports.searchVideos = async function (req, res, next) {
   const userQuery = userInput.join(" ");
 
   try {
-    const ranks = await calculateRank(userQuery);
+    const ranks = await fetchVideosRanks(userQuery);
     const query = await Query.findOne({ text: userQuery });
 
     if (query) {

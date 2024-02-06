@@ -18,6 +18,8 @@ const CHANNEL_SELECTOR = "#text > a";
 const TRANSCRIPT_SELECTOR =
   "#segments-container > ytd-transcript-segment-renderer yt-formatted-string";
 const META_SELECTOR = "meta";
+const K1 = 1.2;
+const B = 0.75;
 
 module.exports = {
   DEFAULT_TAG_NAME_EN,
@@ -34,4 +36,6 @@ module.exports = {
   CHANNEL_SELECTOR,
   TRANSCRIPT_SELECTOR,
   META_SELECTOR,
+  K1,
+  B,
 };
