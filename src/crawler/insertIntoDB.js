@@ -8,7 +8,7 @@ const stemWord = require("../utils/stemWord");
 const { K1, B } = require("../constants/crawlerConstants");
 
 async function saveAverageDocumentLength(video) {
-  const totalVideos = await Video.estimatedDocumentCount();
+  const totalVideos = await Video.estimatedDocumentCount().lean();
   const averageDocumentLength = await DocumentData.findOne({
     name: "averageDocumentLength",
   });
@@ -30,7 +30,9 @@ async function saveAverageDocumentLength(video) {
 
 async function saveOriginalKeywords(video, tokens) {
   const originalKeywordsPromises = tokens.map(async (token) => {
-    const originalKeyword = await OriginalKeyword.findOne({ text: token });
+    const originalKeyword = await OriginalKeyword.findOne({
+      text: token,
+    }).lean();
 
     if (!originalKeyword) {
       await OriginalKeyword.create({
@@ -43,10 +45,10 @@ async function saveOriginalKeywords(video, tokens) {
 }
 
 async function saveKeywords(video, words, originalWords) {
-  const totalVideos = await Video.estimatedDocumentCount();
+  const totalVideos = await Video.estimatedDocumentCount().lean();
   const averageDocumentLength = await DocumentData.findOne({
     name: "averageDocumentLength",
-  });
+  }).lean();
   const keywordsPromises = words.map(async (word) => {
     const keyword = await Keyword.findOne({ text: word });
 

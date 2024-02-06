@@ -77,7 +77,7 @@ async function crawl(url) {
   const linksPromises = links.map(async (link) => {
     const videoData = await Video.findOne({
       youtubeVideoId: link.split("=")[1],
-    });
+    }).lean();
 
     if (!videoData) {
       linksQueue.push(link);
