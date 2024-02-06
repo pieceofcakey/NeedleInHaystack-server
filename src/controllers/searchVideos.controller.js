@@ -2,11 +2,11 @@ const fetchVideosRanks = require("../utils/fetchVideosRanks");
 const Query = require("../models/Query");
 
 exports.searchVideos = async function (req, res, next) {
-  const { userInput } = req.body;
+  const { userInput, pageParam } = req.body;
   const userQuery = userInput.join(" ");
 
-  if (!userQuery) {
-    res.status(200).send({ result: "ok", videos: [], query: userQuery });
+  if (!userQuery.trim()) {
+    res.status(200).send({ result: "null", videos: [], query: userQuery });
     return;
   }
 
@@ -24,7 +24,19 @@ exports.searchVideos = async function (req, res, next) {
       });
     }
 
-    res.status(200).send({ result: "ok", videos: ranks, query: userQuery });
+    if (ranks.length === 0) {
+      res.status(200).send({ result: "null", videos: [], query: userQuery });
+      return;
+    }
+
+    const totalPages = Math.floor(ranks.length / 10);
+
+    res.status(200).send({
+      result: "ok",
+      videos: ranks.slice(10 * pageParam, 10 * pageParam + 10),
+      query: userQuery,
+      nextPage: pageParam < totalPages ? pageParam + 1 : null,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({
