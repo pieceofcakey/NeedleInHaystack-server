@@ -5,6 +5,11 @@ exports.searchVideos = async function (req, res, next) {
   const { userInput } = req.body;
   const userQuery = userInput.join(" ");
 
+  if (!userQuery) {
+    res.status(200).send({ result: "ok", videos: [], query: userQuery });
+    return;
+  }
+
   try {
     const ranks = await fetchVideosRanks(userQuery);
     const query = await Query.findOne({ text: userQuery });
