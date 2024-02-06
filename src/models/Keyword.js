@@ -18,6 +18,7 @@ const keywordSchema = new mongoose.Schema({
         youtubeVideoId: {
           type: String,
           required: true,
+          unique: true,
         },
         TF: {
           type: Number,
@@ -32,11 +33,6 @@ const keywordSchema = new mongoose.Schema({
       },
     ],
     default: [],
-    required: true,
-  },
-  IDF: {
-    type: mongoose.Decimal128,
-    default: 1,
     required: true,
   },
 });
