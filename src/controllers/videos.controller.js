@@ -4,7 +4,7 @@ exports.fetchVideo = async function (req, res, next) {
   const youtubeVideoId = req.params.video_id;
 
   try {
-    const video = await Video.findOne({ youtubeVideoId });
+    const video = await Video.findOne({ youtubeVideoId }).lean();
 
     res.status(200).send({ result: "ok", video });
   } catch (error) {

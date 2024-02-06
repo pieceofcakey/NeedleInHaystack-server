@@ -10,14 +10,14 @@ async function fetchVideosRanks(query) {
   const keywords = [...new Set(tokens.map((token) => stemWord(token)))];
 
   const firstKeyword = keywords.shift();
-  const firstKeywordData = await Keyword.findOne({ text: firstKeyword });
+  const firstKeywordData = await Keyword.findOne({ text: firstKeyword }).lean();
 
   firstKeywordData.videos.forEach((video) => {
     results[video.youtubeVideoId] = parseFloat(video.score);
   });
 
   const keywordsPromises = keywords.map(async (keyword) => {
-    const keywordData = await Keyword.findOne({ text: keyword });
+    const keywordData = await Keyword.findOne({ text: keyword }).lean();
 
     keywordData.videos.forEach((video) => {
       if (results[video.youtubeVideoId]) {
