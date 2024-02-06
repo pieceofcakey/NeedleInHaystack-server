@@ -1,8 +1,13 @@
 const mongoose = require("mongoose");
 
 const originalKeywordSchema = new mongoose.Schema({
-  text: {
+  name: {
     type: String,
+    unique: true,
+    required: true,
+  },
+  value: {
+    type: [String],
     unique: true,
   },
 });
