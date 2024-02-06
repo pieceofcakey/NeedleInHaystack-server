@@ -25,7 +25,6 @@ module.exports = {
     semi: "warn",
     "no-underscore-dangle": 0,
     "func-names": "off",
-    "consistent-return": "off",
     "no-unused-vars": "warn",
     "no-param-reassign": 0,
   },

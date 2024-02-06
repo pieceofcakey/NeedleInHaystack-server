@@ -6,7 +6,8 @@ exports.searchVideos = async function (req, res, next) {
   const userQuery = userInput.join(" ");
 
   if (!userQuery) {
-    return res.status(200).send({ result: "ok", videos: [], query: userQuery });
+    res.status(200).send({ result: "ok", videos: [], query: userQuery });
+    return;
   }
 
   try {
