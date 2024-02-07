@@ -3,7 +3,8 @@ const OriginalKeyword = require("../models/OriginalKeyword");
 async function getOriginalKeywords() {
   const correctWords = await OriginalKeyword.findOne({
     name: "originalKeywords",
-  });
+  }).lean();
+
   return correctWords.value;
 }
 
@@ -76,10 +77,12 @@ async function checkSpell(misspelledWord) {
     const soundexMatch = misspelledSoundex === correctSoundex;
     const similarityScore = jaccardSimilarity * (soundexMatch ? 1 : 0.5);
 
-    suggestions.push({
-      word: correctWord,
-      similarityScore,
-    });
+    if (similarityScore > 0.5) {
+      suggestions.push({
+        word: correctWord,
+        similarityScore,
+      });
+    }
   }
 
   suggestions.sort((a, b) => b.similarityScore - a.similarityScore);
@@ -92,7 +95,7 @@ async function checkUserInputSpelling(userInput) {
     userInput
       .trim()
       .split(" ")
-      .map((element) => checkSpell(element)),
+      .map((word) => checkSpell(word)),
   );
   const output = [];
 
@@ -100,11 +103,7 @@ async function checkUserInputSpelling(userInput) {
     output.push(element?.word);
   });
 
-  if (output.length) {
-    return output.join(" ");
-  } else {
-    return null;
-  }
+  return output.join(" ");
 }
 
 module.exports = checkUserInputSpelling;
