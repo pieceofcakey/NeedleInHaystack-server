@@ -28,20 +28,19 @@ async function saveAverageDocumentLength(video) {
   }
 }
 
-async function saveOriginalKeywords(video, tokens) {
-  const originalKeywordsPromises = tokens.map(async (token) => {
-    const originalKeyword = await OriginalKeyword.findOne({
-      text: token,
-    }).lean();
-
-    if (!originalKeyword) {
-      await OriginalKeyword.create({
-        text: token,
-      });
-    }
+async function saveOriginalKeywords(tokens) {
+  const originalKeyword = await OriginalKeyword.findOne({
+    name: "originalKeywords",
   });
 
-  await Promise.allSettled(originalKeywordsPromises);
+  if (originalKeyword) {
+    tokens.forEach((token) => originalKeyword.value.push(token));
+
+    originalKeyword.value = [...new Set(originalKeyword.value)];
+    await originalKeyword.save();
+  } else {
+    await OriginalKeyword.create({ name: "originalKeywords", value: tokens });
+  }
 }
 
 async function saveKeywords(video, words, originalWords) {
@@ -126,7 +125,7 @@ async function insertIntoDB(newVideoObject) {
   const words = [...new Set(tokens.map((token) => stemWord(token)))];
 
   await saveAverageDocumentLength(video);
-  await saveOriginalKeywords(video, tokens);
+  await saveOriginalKeywords(tokens);
   await saveKeywords(video, words, originalWords);
 }
 
