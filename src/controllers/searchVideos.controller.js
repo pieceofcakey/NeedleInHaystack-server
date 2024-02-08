@@ -14,7 +14,7 @@ exports.searchVideos = async function (req, res, next) {
   try {
     const recommendedSearchKeyword = await checkUserInputSpelling(userQuery);
     const correctedInput = shouldCheckSpell
-      ? await checkUserInputSpelling(userQuery)
+      ? recommendedSearchKeyword
       : userQuery;
 
     const ranks = await fetchVideosRanks(correctedInput);
