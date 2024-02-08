@@ -119,7 +119,15 @@ async function crawl(url) {
     elements.map((element) => element.textContent),
   );
 
+  const transcriptTimeLines = await page.$$eval(
+    "#segments-container > ytd-transcript-segment-renderer .segment-timestamp",
+    (elements) => elements.map((element) => element.textContent.trim()),
+  );
+
   newVideoObject.transcript = transcripts.join(" ");
+
+  newVideoObject.transcripts = transcripts;
+  newVideoObject.transcriptTimeLines = transcriptTimeLines;
 
   const metaTags = await page.$$eval(META_SELECTOR, (elements) => {
     const result = { thumbnailURL: "", tag: "" };
@@ -168,4 +176,4 @@ async function crawl(url) {
 }
 
 console.log(`Start crawling`);
-crawl(JAVASCRIPT_ENTRY_URL);
+crawl("https://www.youtube.com/watch?v=VFbYadm_mrw");
