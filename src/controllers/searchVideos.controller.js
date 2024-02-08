@@ -1,6 +1,6 @@
 const fetchVideosRanks = require("../utils/fetchVideosRanks");
-const Query = require("../models/Query");
 const checkUserInputSpelling = require("../utils/checkSpelling");
+const Query = require("../models/Query");
 
 exports.searchVideos = async function (req, res, next) {
   const { userInput, pageParam, shouldCheckSpell } = req.body;
