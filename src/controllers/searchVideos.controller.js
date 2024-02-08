@@ -1,8 +1,9 @@
 const fetchVideosRanks = require("../utils/fetchVideosRanks");
+const checkUserInputSpelling = require("../utils/checkSpelling");
 const Query = require("../models/Query");
 
 exports.searchVideos = async function (req, res, next) {
-  const { userInput, pageParam } = req.body;
+  const { userInput, pageParam, shouldCheckSpell } = req.body;
   const userQuery = userInput.join(" ");
 
   if (!userQuery.trim()) {
@@ -11,7 +12,12 @@ exports.searchVideos = async function (req, res, next) {
   }
 
   try {
-    const ranks = await fetchVideosRanks(userQuery);
+    const recommendedSearchKeyword = await checkUserInputSpelling(userQuery);
+    const correctedInput = shouldCheckSpell
+      ? recommendedSearchKeyword
+      : userQuery;
+
+    const ranks = await fetchVideosRanks(correctedInput);
     const query = await Query.findOne({ text: userQuery });
 
     if (query) {
@@ -25,7 +31,13 @@ exports.searchVideos = async function (req, res, next) {
     }
 
     if (ranks.length === 0) {
-      res.status(200).send({ result: "null", videos: [], query: userQuery });
+      res.status(200).send({
+        result: "null",
+        videos: [],
+        query: userQuery,
+        recommendedSearchKeyword,
+      });
+
       return;
     }
 
@@ -36,6 +48,7 @@ exports.searchVideos = async function (req, res, next) {
       videos: ranks.slice(10 * pageParam, 10 * pageParam + 10),
       query: userQuery,
       nextPage: pageParam < totalPages ? pageParam + 1 : null,
+      correctedInput,
     });
   } catch (error) {
     console.log(error);
