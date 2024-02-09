@@ -85,6 +85,7 @@ exports.searchVideos = async function (req, res, next) {
       query: userQuery,
       nextPage: pageParam < totalPages ? pageParam + 1 : null,
       correctedInput,
+      totalVideosCount: ranks.length.toLocaleString(),
     });
   } catch (error) {
     console.error(error);

@@ -22,6 +22,16 @@ const videoSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  transcripts: {
+    type: Array,
+    default: [],
+    required: true,
+  },
+  transcriptTimeLines: {
+    type: Array,
+    default: [],
+    required: true,
+  },
   thumbnailURL: {
     type: String,
     required: true,
