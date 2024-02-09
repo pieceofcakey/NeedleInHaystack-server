@@ -7,7 +7,7 @@ const {
 const {
   TWO_WEEKS_IN_MILLISECONDS,
   ONE_HOUR_IN_MILLISECONDS,
-} = require("../constants");
+} = require("../constants/jwtConstants");
 
 async function verifyToken(req, res, next) {
   const accessToken = req.cookies.accessToken;
