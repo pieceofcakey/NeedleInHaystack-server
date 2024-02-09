@@ -1,5 +1,6 @@
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../../.env") });
+const { startSession } = require("mongoose");
 const puppeteer = require("puppeteer");
 const Video = require("../models/Video");
 
@@ -165,15 +166,25 @@ async function crawl(url) {
 
   await browser.close();
 
+  const session = await startSession();
+
   try {
-    await insertIntoDB(newVideoObject);
+    session.startTransaction();
+
+    await insertIntoDB(newVideoObject, session);
+    await session.commitTransaction();
     console.log(`Inserted ${url} into DB.`);
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
+    await session.abortTransaction();
+  } finally {
+    await session.endSession();
   }
 
-  crawl(newURL);
+  return crawl(newURL);
 }
 
 console.log(`Start crawling`);
-crawl("https://www.youtube.com/watch?v=VFbYadm_mrw");
+crawl(JAVASCRIPT_ENTRY_URL);
+
+module.exports = { crawl };
