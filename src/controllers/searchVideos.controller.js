@@ -60,7 +60,7 @@ exports.searchVideos = async function (req, res, next) {
       });
 
       if (user) {
-        user.searchHistory.push(query);
+        user.searchHistory.push(userQuery);
 
         await user.save();
       }
