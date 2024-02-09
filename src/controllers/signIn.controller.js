@@ -17,7 +17,7 @@ exports.signIn = async function (req, res, next) {
         email,
         photoURL,
         displayName,
-        role: "customer",
+        isAdmin: false,
       });
     }
 

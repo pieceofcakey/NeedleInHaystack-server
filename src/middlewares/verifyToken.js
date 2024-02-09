@@ -27,7 +27,7 @@ async function verifyToken(req, res, next) {
       userData = jwt.verify(refreshToken, process.env.JWT_SECRET_KEY);
     } catch (error) {
       return res
-        .status(203)
+        .status(401)
         .send({ result: false, message: "you should login.." });
     }
 
@@ -45,7 +45,7 @@ async function verifyToken(req, res, next) {
   try {
     jwt.verify(refreshToken, process.env.JWT_SECRET_KEY);
   } catch (error) {
-    const user = await User.findById(userData.userId);
+    const user = await User.findById(userData.userId).lean();
     const refreshToken = generateRefreshToken(user);
 
     res.cookie("refreshToken", refreshToken, {

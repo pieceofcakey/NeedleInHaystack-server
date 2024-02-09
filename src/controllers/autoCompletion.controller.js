@@ -17,7 +17,7 @@ exports.getAutoCompletions = async function (req, res, next) {
   const user = userData?.userId;
 
   if (user) {
-    const foundUser = await User.findOne({ _id: user });
+    const foundUser = await User.findOne({ _id: user }).lean();
     const userSearchHistory = foundUser.searchHistory;
 
     if (userInput) {
