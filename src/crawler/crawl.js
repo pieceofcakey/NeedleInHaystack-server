@@ -4,7 +4,6 @@ const { startSession } = require("mongoose");
 const puppeteer = require("puppeteer");
 const Video = require("../models/Video");
 
-const mongooseLoader = require("../loaders/mongoose");
 const analyzeText = require("../utils/analyzeText");
 const insertIntoDB = require("./insertIntoDB");
 
@@ -25,13 +24,9 @@ const {
   META_SELECTOR,
 } = require("../constants/crawlerConstants");
 
-const linksQueue = [];
-
-(async function () {
-  await mongooseLoader();
-})();
-
 async function crawl(url) {
+  console.log("Start Crawling");
+  const newLinksQueue = [];
   const newVideoObject = {
     youtubeVideoId: url.split("=")[1],
   };
@@ -81,13 +76,11 @@ async function crawl(url) {
     }).lean();
 
     if (!videoData) {
-      linksQueue.push(link);
+      newLinksQueue.push(link);
     }
   });
 
   await Promise.all(linksPromises);
-
-  const newURL = linksQueue.shift();
 
   try {
     newVideoObject.title = await page.$eval(
@@ -181,10 +174,7 @@ async function crawl(url) {
     await session.endSession();
   }
 
-  return crawl(newURL);
+  return { newVideoObject, newLinksQueue };
 }
-
-console.log(`Start crawling`);
-crawl(JAVASCRIPT_ENTRY_URL);
 
 module.exports = { crawl };
