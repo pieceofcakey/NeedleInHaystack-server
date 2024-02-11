@@ -14,11 +14,11 @@ exports.getAutoCompletions = async function (req, res, next) {
 
   const searchHistories = [];
   const { userInput } = req.query;
-  const user = userData?.userId;
+  const userId = userData?.userId;
 
-  if (user) {
-    const foundUser = await User.findOne({ _id: user }).lean();
-    const userSearchHistory = foundUser.searchHistory;
+  if (userId) {
+    const user = await User.findOne({ _id: userId }).lean();
+    const userSearchHistory = user.searchHistory;
 
     if (userInput) {
       const matchingItems = userSearchHistory.filter((item) => {
@@ -26,23 +26,29 @@ exports.getAutoCompletions = async function (req, res, next) {
         return regex.test(item);
       });
 
-      return res.status(200).send({
+      res.status(200).send({
         result: "ok",
         searchHistories: matchingItems,
       });
+
+      return;
     }
 
-    return res.status(200).send({
+    res.status(200).send({
       result: "ok",
       searchHistories: userSearchHistory.reverse(),
     });
+
+    return;
   }
 
   if (!userInput) {
-    return res.status(200).send({
+    res.status(200).send({
       result: "ok",
       searchHistories: [],
     });
+
+    return;
   }
 
   try {
