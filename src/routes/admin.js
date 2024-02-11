@@ -7,5 +7,6 @@ const router = express.Router();
 router.get("/streamCrawling", crawlingController.streamCrawling);
 router.get("/startCrawling", crawlingController.startCrawling);
 router.get("/stopCrawling", crawlingController.stopCrawling);
+router.get("/verifyYoutubeUrl", crawlingController.verifyYoutubeUrl);
 
 module.exports = router;

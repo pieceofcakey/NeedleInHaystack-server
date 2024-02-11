@@ -78,3 +78,29 @@ exports.stopCrawling = async function (req, res, next) {
     });
   }
 };
+
+exports.verifyYoutubeUrl = async function (req, res, next) {
+  const { videoUrl } = req.query;
+  const youtubeUrlRegex =
+    /^https:\/\/www\.youtube\.com\/watch\?v=[a-zA-Z0-9_-]+/;
+
+  try {
+    if (youtubeUrlRegex.test(videoUrl)) {
+      res
+        .status(200)
+        .send({ result: "ok", message: "correct youtube video url" });
+      return;
+    }
+    res
+      .status(200)
+      .send({ result: "ng", message: "inCorrect youtube video url" });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      result: "ng",
+      errorMessage:
+        "Hmm...something seems to have gone wrong. Maybe try me again in a little bit.",
+    });
+  }
+};
