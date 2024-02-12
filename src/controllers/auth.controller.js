@@ -47,14 +47,12 @@ exports.signOut = async function (req, res, next) {
 };
 
 exports.check = async function (req, res, next) {
-  console.log("check!", req.user);
-
   if (!req.user) {
     res.status(200).json({ result: false });
     return;
   }
 
-  const user = await User.findById(req.user);
+  const user = await User.findById(req.user).lean();
 
   res.status(200).json({ result: true, user });
 };
