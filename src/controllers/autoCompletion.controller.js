@@ -1,9 +1,9 @@
+const jwt = require("jsonwebtoken");
 const Query = require("../models/Query");
 const User = require("../models/User");
-const jwt = require("jsonwebtoken");
 
 exports.getAutoCompletions = async function (req, res, next) {
-  const accessToken = req.cookies.accessToken;
+  const { accessToken } = req.cookies;
   const MAXIMUM_AUTO_COMPLETIONS = 5;
 
   let userData;
@@ -14,35 +14,41 @@ exports.getAutoCompletions = async function (req, res, next) {
 
   const searchHistories = [];
   const { userInput } = req.query;
-  const user = userData?.userId;
+  const userId = userData?.userId;
 
-  if (user) {
-    const foundUser = await User.findOne({ _id: user }).lean();
-    const userSearchHistory = foundUser.searchHistory;
+  if (userId) {
+    const user = await User.findOne({ _id: userId }).lean();
+    const userSearchHistory = user.searchHistory;
 
     if (userInput) {
       const matchingItems = userSearchHistory.filter((item) => {
-        regex = new RegExp(`^${userInput}`, "i");
+        const regex = new RegExp(`^${userInput}`, "i");
         return regex.test(item);
       });
 
-      return res.status(200).send({
+      res.status(200).send({
         result: "ok",
         searchHistories: matchingItems,
       });
+
+      return;
     }
 
-    return res.status(200).send({
+    res.status(200).send({
       result: "ok",
       searchHistories: userSearchHistory.reverse(),
     });
+
+    return;
   }
 
   if (!userInput) {
-    return res.status(200).send({
+    res.status(200).send({
       result: "ok",
       searchHistories: [],
     });
+
+    return;
   }
 
   try {
@@ -63,6 +69,7 @@ exports.getAutoCompletions = async function (req, res, next) {
     });
   } catch (error) {
     console.log(error);
+
     res.status(500).json({
       errorMessage:
         "Hmm...something seems to have gone wrong. Maybe try me again in a little bit.",

@@ -1,13 +1,13 @@
+const jwt = require("jsonwebtoken");
 const fetchVideosRanks = require("../utils/fetchVideosRanks");
 const checkUserInputSpelling = require("../utils/checkSpelling");
 const Query = require("../models/Query");
-const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 exports.searchVideos = async function (req, res, next) {
   const { userInput, pageParam, shouldCheckSpell } = req.body;
   const userQuery = userInput.join(" ");
-  const accessToken = req.cookies.accessToken;
+  const { accessToken } = req.cookies;
 
   let userData;
 

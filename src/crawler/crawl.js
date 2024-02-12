@@ -1,9 +1,9 @@
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../../.env") });
+const { startSession } = require("mongoose");
 const puppeteer = require("puppeteer");
 const Video = require("../models/Video");
 
-const mongooseLoader = require("../loaders/mongoose");
 const analyzeText = require("../utils/analyzeText");
 const insertIntoDB = require("./insertIntoDB");
 
@@ -24,13 +24,9 @@ const {
   META_SELECTOR,
 } = require("../constants/crawlerConstants");
 
-const linksQueue = [];
-
-(async function () {
-  await mongooseLoader();
-})();
-
 async function crawl(url) {
+  console.log("Start Crawling");
+  const newLinksQueue = [];
   const newVideoObject = {
     youtubeVideoId: url.split("=")[1],
   };
@@ -80,13 +76,11 @@ async function crawl(url) {
     }).lean();
 
     if (!videoData) {
-      linksQueue.push(link);
+      newLinksQueue.push(link);
     }
   });
 
   await Promise.all(linksPromises);
-
-  const newURL = linksQueue.shift();
 
   try {
     newVideoObject.title = await page.$eval(
@@ -165,15 +159,22 @@ async function crawl(url) {
 
   await browser.close();
 
+  const session = await startSession();
+
   try {
-    await insertIntoDB(newVideoObject);
+    session.startTransaction();
+
+    await insertIntoDB(newVideoObject, session);
+    await session.commitTransaction();
     console.log(`Inserted ${url} into DB.`);
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
+    await session.abortTransaction();
+  } finally {
+    await session.endSession();
   }
 
-  crawl(newURL);
+  return { newVideoObject, newLinksQueue };
 }
 
-console.log(`Start crawling`);
-crawl("https://www.youtube.com/watch?v=VFbYadm_mrw");
+module.exports = { crawl };
