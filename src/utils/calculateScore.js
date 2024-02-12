@@ -1,4 +1,4 @@
-const { K1, B } = require("../constants/crawlerConstants");
+const { K1, B } = require("../constants/rankingConstants");
 
 exports.calculateIDF = function (totalDocuments, documents) {
   return Math.log(
