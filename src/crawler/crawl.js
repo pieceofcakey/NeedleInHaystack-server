@@ -156,6 +156,16 @@ async function crawl(url) {
   const tokens = analyzeText(fullText);
 
   newVideoObject.documentLength = tokens.length;
+  newVideoObject.titleLength = analyzeText(
+    `${newVideoObject.title} ${newVideoObject.channel}`,
+  ).length;
+  newVideoObject.descriptionLength = analyzeText(
+    newVideoObject.description,
+  ).length;
+  newVideoObject.transcriptLength = analyzeText(
+    newVideoObject.transcript,
+  ).length;
+  newVideoObject.tagLength = analyzeText(newVideoObject.tag).length;
 
   await browser.close();
 
