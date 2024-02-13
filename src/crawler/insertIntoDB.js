@@ -19,7 +19,8 @@ const {
 } = require("../constants/rankingConstants");
 
 async function saveAverageDocumentLength(video, session) {
-  const totalVideos = await Video.estimatedDocumentCount().lean();
+  const totalVideos = (await Video.estimatedDocumentCount()) || 1;
+
   const averageDocumentLength = await DocumentLength.findOne({
     name: "averageDocumentLength",
   }).session(session);
@@ -100,7 +101,8 @@ async function saveKeywords(
   tagTokens,
   session,
 ) {
-  const totalVideos = (await Video.estimatedDocumentCount().lean()) + 1;
+  const totalVideos = (await Video.estimatedDocumentCount()) || 1;
+
   const averageDocumentLength = (await DocumentLength.findOne({
     name: "averageDocumentLength",
   }).lean()) || {
@@ -185,19 +187,19 @@ async function saveKeywords(
               averageDocumentLength.descriptionLength,
             ) +
           TRANSCRIPT_WEIGHT *
-            calculateBM25(
+            (calculateBM25(
               inverseDocumentFrequency,
               transcriptTermFrequency,
               transcriptTokens.length,
               averageDocumentLength.transcriptLength,
-            ) +
+            ) || 0) +
           TAG_WEIGHT *
-            calculateBM25(
+            (calculateBM25(
               inverseDocumentFrequency,
               tagTermFrequency,
               tagTokens.length,
               averageDocumentLength.tagLength,
-            ),
+            ) || 0),
       });
 
       keyword.videos = keyword.videos.sort((a, b) => b.score - a.score);
@@ -238,19 +240,19 @@ async function saveKeywords(
                       averageDocumentLength.descriptionLength,
                     ) +
                   TRANSCRIPT_WEIGHT *
-                    calculateBM25(
+                    (calculateBM25(
                       inverseDocumentFrequency,
                       transcriptTermFrequency,
                       transcriptTokens.length,
                       averageDocumentLength.transcriptLength,
-                    ) +
+                    ) || 0) +
                   TAG_WEIGHT *
-                    calculateBM25(
+                    (calculateBM25(
                       inverseDocumentFrequency,
                       tagTermFrequency,
                       tagTokens.length,
                       averageDocumentLength.tagLength,
-                    ),
+                    ) || 0),
               },
             ],
             IDF: inverseDocumentFrequency,
