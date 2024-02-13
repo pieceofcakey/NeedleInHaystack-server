@@ -14,6 +14,12 @@ function calculateBM25(IDF, TF, documentLength, averageDocumentLength) {
   );
 }
 
+exports.calculateAverage = function (prevAverage, totalCount, documentLength) {
+  return Math.floor(
+    (prevAverage * (totalCount - 1) + documentLength) / totalCount,
+  );
+};
+
 exports.calculateIDF = function (totalDocuments, documents) {
   return Math.log(
     (totalDocuments - documents.length + 0.5) / (documents.length + 0.5) + 1,

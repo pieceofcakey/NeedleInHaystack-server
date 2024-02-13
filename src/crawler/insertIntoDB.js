@@ -6,6 +6,7 @@ const DocumentLength = require("../models/DocumentLength");
 const analyzeText = require("../utils/analyzeText");
 const stemWord = require("../utils/stemWord");
 const {
+  calculateAverage,
   calculateTF,
   calculateIDF,
   calculateBM25F,
@@ -19,33 +20,34 @@ async function saveAverageDocumentLength(video, session) {
   }).session(session);
 
   if (averageDocumentLength) {
-    averageDocumentLength.documentLength = Math.floor(
-      (averageDocumentLength.documentLength * (totalVideos - 1) +
-        video.documentLength) /
-        totalVideos,
+    averageDocumentLength.documentLength = calculateAverage(
+      averageDocumentLength.documentLength,
+      totalVideos,
+      video.documentLength,
     );
 
-    averageDocumentLength.titleLength = Math.floor(
-      (averageDocumentLength.titleLength * (totalVideos - 1) +
-        video.titleLength) /
-        totalVideos,
+    averageDocumentLength.titleLength = calculateAverage(
+      averageDocumentLength.titleLength,
+      totalVideos,
+      video.titleLength,
     );
 
-    averageDocumentLength.descriptionLength = Math.floor(
-      (averageDocumentLength.descriptionLength * (totalVideos - 1) +
-        video.descriptionLength) /
-        totalVideos,
+    averageDocumentLength.descriptionLength = calculateAverage(
+      averageDocumentLength.descriptionLength,
+      totalVideos,
+      video.descriptionLength,
     );
 
-    averageDocumentLength.transcriptLength = Math.floor(
-      (averageDocumentLength.transcriptLength * (totalVideos - 1) +
-        video.transcriptLength) /
-        totalVideos,
+    averageDocumentLength.transcriptLength = calculateAverage(
+      averageDocumentLength.transcriptLength,
+      totalVideos,
+      video.transcriptLength,
     );
 
-    averageDocumentLength.tagLength = Math.floor(
-      (averageDocumentLength.tagLength * (totalVideos - 1) + video.tagLength) /
-        totalVideos,
+    averageDocumentLength.tagLength = calculateAverage(
+      averageDocumentLength.tagLength,
+      totalVideos,
+      video.tagLength,
     );
 
     await averageDocumentLength.save();
