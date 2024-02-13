@@ -16,7 +16,8 @@ const userSchema = new mongoose.Schema({
   },
   searchHistory: {
     type: [String],
-    unique: true,
+    default: [],
+    required: true,
   },
   refreshToken: {
     type: String,

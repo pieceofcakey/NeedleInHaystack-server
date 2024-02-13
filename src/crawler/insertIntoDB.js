@@ -1,35 +1,66 @@
 const Keyword = require("../models/Keyword");
 const OriginalKeyword = require("../models/OriginalKeyword");
 const Video = require("../models/Video");
-const DocumentData = require("../models/DocumentData");
+const DocumentLength = require("../models/DocumentLength");
 
 const analyzeText = require("../utils/analyzeText");
 const stemWord = require("../utils/stemWord");
 const {
-  calculateBM25,
+  calculateAverage,
   calculateTF,
   calculateIDF,
+  calculateBM25F,
 } = require("../utils/calculateScore");
 
 async function saveAverageDocumentLength(video, session) {
-  const totalVideos = await Video.estimatedDocumentCount().lean();
-  const averageDocumentLength = await DocumentData.findOne({
+  const totalVideos = (await Video.estimatedDocumentCount()) || 1;
+
+  const averageDocumentLength = await DocumentLength.findOne({
     name: "averageDocumentLength",
   }).session(session);
 
   if (averageDocumentLength) {
-    averageDocumentLength.value = Math.floor(
-      (averageDocumentLength.value * (totalVideos - 1) + video.documentLength) /
-        totalVideos,
+    averageDocumentLength.documentLength = calculateAverage(
+      averageDocumentLength.documentLength,
+      totalVideos,
+      video.documentLength,
+    );
+
+    averageDocumentLength.titleLength = calculateAverage(
+      averageDocumentLength.titleLength,
+      totalVideos,
+      video.titleLength,
+    );
+
+    averageDocumentLength.descriptionLength = calculateAverage(
+      averageDocumentLength.descriptionLength,
+      totalVideos,
+      video.descriptionLength,
+    );
+
+    averageDocumentLength.transcriptLength = calculateAverage(
+      averageDocumentLength.transcriptLength,
+      totalVideos,
+      video.transcriptLength,
+    );
+
+    averageDocumentLength.tagLength = calculateAverage(
+      averageDocumentLength.tagLength,
+      totalVideos,
+      video.tagLength,
     );
 
     await averageDocumentLength.save();
   } else {
-    await DocumentData.create(
+    await DocumentLength.create(
       [
         {
           name: "averageDocumentLength",
-          value: video.documentLength,
+          documentLength: video.documentLength,
+          titleLength: video.titleLength,
+          descriptionLength: video.descriptionLength,
+          transcriptLength: video.transcriptLength,
+          tagLength: video.tagLength,
         },
       ],
       { session },
@@ -55,17 +86,30 @@ async function saveOriginalKeywords(tokens, session) {
   }
 }
 
-async function saveKeywords(video, words, originalWords, session) {
-  const totalVideos = await Video.estimatedDocumentCount().lean();
-  const averageDocumentLength =
-    (await DocumentData.findOne({
-      name: "averageDocumentLength",
-    }).lean()) || video.documentLength;
+async function saveKeywords(video, words, originalWords, fieldTokens, session) {
+  const totalVideos = (await Video.estimatedDocumentCount()) || 1;
+
+  const averageDocumentLength = (await DocumentLength.findOne({
+    name: "averageDocumentLength",
+  }).lean()) || {
+    documentLength: video.documentLength,
+    titleLength: video.titleLength,
+    descriptionLength: video.descriptionLength,
+    transcriptLength: video.transcriptLength,
+    tagLength: video.tagLength,
+  };
 
   const keywordsPromises = words.map(async (word) => {
     const keyword = await Keyword.findOne({ text: word }).session(session);
 
     const termFrequency = calculateTF(originalWords, word);
+
+    const TFs = {
+      titleTF: calculateTF(fieldTokens.titleTokens, word),
+      descriptionTF: calculateTF(fieldTokens.descriptionTokens, word),
+      transcriptTF: calculateTF(fieldTokens.descriptionTokens, word),
+      tagTermTF: calculateTF(fieldTokens.transcriptTokens, word),
+    };
 
     if (keyword) {
       const inverseDocumentFrequency = calculateIDF(
@@ -74,11 +118,11 @@ async function saveKeywords(video, words, originalWords, session) {
       );
 
       keyword.videos.forEach((prevVideo) => {
-        prevVideo.score = calculateBM25(
+        prevVideo.score = calculateBM25F(
           inverseDocumentFrequency,
-          prevVideo.TF,
-          originalWords.length,
-          averageDocumentLength.value,
+          prevVideo,
+          fieldTokens,
+          averageDocumentLength,
         );
       });
 
@@ -86,11 +130,15 @@ async function saveKeywords(video, words, originalWords, session) {
         videoId: video._id,
         youtubeVideoId: video.youtubeVideoId,
         TF: termFrequency,
-        score: calculateBM25(
+        titleTF: TFs.titleTF,
+        descriptionTF: TFs.descriptionTF,
+        transcriptTF: TFs.transcriptTF,
+        tagTF: TFs.tagTF,
+        score: calculateBM25F(
           inverseDocumentFrequency,
-          termFrequency,
-          originalWords.length,
-          averageDocumentLength.value,
+          TFs,
+          fieldTokens,
+          averageDocumentLength,
         ),
       });
 
@@ -112,11 +160,15 @@ async function saveKeywords(video, words, originalWords, session) {
                 videoId: video._id,
                 youtubeVideoId: video.youtubeVideoId,
                 TF: termFrequency,
-                score: calculateBM25(
+                titleTF: TFs.titleTF,
+                descriptionTF: TFs.descriptionTF,
+                transcriptTF: TFs.transcriptTF,
+                tagTF: TFs.tagTF,
+                score: calculateBM25F(
                   inverseDocumentFrequency,
-                  termFrequency,
-                  originalWords.length,
-                  averageDocumentLength.value,
+                  TFs,
+                  fieldTokens,
+                  averageDocumentLength,
                 ),
               },
             ],
@@ -140,9 +192,27 @@ async function insertIntoDB(newVideoObject, session) {
   const tokens = [...new Set(originalTokens)];
   const words = [...new Set(tokens.map((token) => stemWord(token)))];
 
+  const titleTokens = analyzeText(`${video.title} ${video.channel}`).map(
+    (token) => stemWord(token),
+  );
+  const descriptionTokens = analyzeText(video.description).map((token) =>
+    stemWord(token),
+  );
+  const transcriptTokens = analyzeText(video.transcript).map((token) =>
+    stemWord(token),
+  );
+  const tagTokens = analyzeText(video.tag).map((token) => stemWord(token));
+
+  const fieldTokens = {
+    titleTokens,
+    descriptionTokens,
+    transcriptTokens,
+    tagTokens,
+  };
+
   await saveAverageDocumentLength(video, session);
   await saveOriginalKeywords(tokens, session);
-  await saveKeywords(video, words, originalWords, session);
+  await saveKeywords(video, words, originalWords, fieldTokens, session);
 }
 
 module.exports = insertIntoDB;

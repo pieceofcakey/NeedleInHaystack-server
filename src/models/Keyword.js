@@ -24,6 +24,26 @@ const keywordSchema = new mongoose.Schema({
           default: 1,
           required: true,
         },
+        titleTF: {
+          type: Number,
+          default: 1,
+          required: true,
+        },
+        descriptionTF: {
+          type: Number,
+          default: 1,
+          required: true,
+        },
+        transcriptTF: {
+          type: Number,
+          default: 1,
+          required: true,
+        },
+        tagTF: {
+          type: Number,
+          default: 1,
+          required: true,
+        },
         score: {
           type: mongoose.Decimal128,
           default: 0,

@@ -44,6 +44,22 @@ const videoSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  titleLength: {
+    type: Number,
+    required: true,
+  },
+  descriptionLength: {
+    type: Number,
+    required: true,
+  },
+  transcriptLength: {
+    type: Number,
+    required: true,
+  },
+  tagLength: {
+    type: Number,
+    required: true,
+  },
 });
 
 videoSchema.pre("validate", function (next) {
