@@ -2,8 +2,9 @@ const jwt = require("jsonwebtoken");
 const Query = require("../models/Query");
 const User = require("../models/User");
 
+const MAXIMUM_AUTO_COMPLETIONS = 10;
+
 exports.getAutoCompletions = async function (req, res, next) {
-  const { accessToken } = req.cookies;
   const { userInput } = req.query;
 
   if (!userInput) {
@@ -15,19 +16,10 @@ exports.getAutoCompletions = async function (req, res, next) {
     return;
   }
 
-  const MAXIMUM_AUTO_COMPLETIONS = 5;
-
-  let userData;
-
-  if (accessToken) {
-    userData = jwt.verify(accessToken, process.env.JWT_SECRET_KEY);
-  }
-
   const searchHistories = [];
-  const userId = userData?.userId;
 
-  if (userId) {
-    const user = await User.findOne({ _id: userId }).lean();
+  if (req.user) {
+    const user = await User.findById(req.user).lean();
     const userSearchHistory = user.searchHistory;
 
     if (userInput) {

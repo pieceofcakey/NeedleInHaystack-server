@@ -40,7 +40,9 @@ async function fetchVideosRanks(query) {
 
   await Promise.allSettled(keywordsPromises);
 
-  const ranks = Object.keys(results).map((key) => [key, results[key]]);
+  const ranks = Object.keys(results)
+    .map((key) => [key, results[key]])
+    .sort((a, b) => b[1] - a[1]);
 
   return ranks;
 }
