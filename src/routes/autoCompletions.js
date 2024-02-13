@@ -2,8 +2,10 @@ const express = require("express");
 
 const autoCompletionsController = require("../controllers/autoCompletion.controller");
 
+const verifyToken = require("../middlewares/verifyToken");
+
 const router = express.Router();
 
-router.get("/", autoCompletionsController.getAutoCompletions);
+router.get("/", verifyToken, autoCompletionsController.getAutoCompletions);
 
 module.exports = router;
