@@ -4,6 +4,17 @@ const User = require("../models/User");
 
 exports.getAutoCompletions = async function (req, res, next) {
   const { accessToken } = req.cookies;
+  const { userInput } = req.query;
+
+  if (!userInput) {
+    res.status(200).send({
+      result: "ok",
+      searchHistories: [],
+    });
+
+    return;
+  }
+
   const MAXIMUM_AUTO_COMPLETIONS = 5;
 
   let userData;
@@ -13,7 +24,6 @@ exports.getAutoCompletions = async function (req, res, next) {
   }
 
   const searchHistories = [];
-  const { userInput } = req.query;
   const userId = userData?.userId;
 
   if (userId) {
@@ -37,15 +47,6 @@ exports.getAutoCompletions = async function (req, res, next) {
     res.status(200).send({
       result: "ok",
       searchHistories: userSearchHistory.reverse(),
-    });
-
-    return;
-  }
-
-  if (!userInput) {
-    res.status(200).send({
-      result: "ok",
-      searchHistories: [],
     });
 
     return;
