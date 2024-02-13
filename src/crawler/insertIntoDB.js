@@ -6,17 +6,10 @@ const DocumentLength = require("../models/DocumentLength");
 const analyzeText = require("../utils/analyzeText");
 const stemWord = require("../utils/stemWord");
 const {
-  calculateBM25,
   calculateTF,
   calculateIDF,
+  calculateBM25F,
 } = require("../utils/calculateScore");
-
-const {
-  TITLE_WEIGHT,
-  DESCRIPTION_WEIGHT,
-  TRANSCRIPT_WEIGHT,
-  TAG_WEIGHT,
-} = require("../constants/rankingConstants");
 
 async function saveAverageDocumentLength(video, session) {
   const totalVideos = (await Video.estimatedDocumentCount()) || 1;
@@ -91,16 +84,7 @@ async function saveOriginalKeywords(tokens, session) {
   }
 }
 
-async function saveKeywords(
-  video,
-  words,
-  originalWords,
-  titleTokens,
-  descriptionTokens,
-  transcriptTokens,
-  tagTokens,
-  session,
-) {
+async function saveKeywords(video, words, originalWords, fieldTokens, session) {
   const totalVideos = (await Video.estimatedDocumentCount()) || 1;
 
   const averageDocumentLength = (await DocumentLength.findOne({
@@ -117,10 +101,13 @@ async function saveKeywords(
     const keyword = await Keyword.findOne({ text: word }).session(session);
 
     const termFrequency = calculateTF(originalWords, word);
-    const titleTermFrequency = calculateTF(titleTokens, word);
-    const descriptionTermFrequency = calculateTF(descriptionTokens, word);
-    const transcriptTermFrequency = calculateTF(transcriptTokens, word);
-    const tagTermFrequency = calculateTF(tagTokens, word);
+
+    const TFs = {
+      titleTF: calculateTF(fieldTokens.titleTokens, word),
+      descriptionTF: calculateTF(fieldTokens.descriptionTokens, word),
+      transcriptTF: calculateTF(fieldTokens.descriptionTokens, word),
+      tagTermTF: calculateTF(fieldTokens.transcriptTokens, word),
+    };
 
     if (keyword) {
       const inverseDocumentFrequency = calculateIDF(
@@ -129,77 +116,28 @@ async function saveKeywords(
       );
 
       keyword.videos.forEach((prevVideo) => {
-        prevVideo.score =
-          TITLE_WEIGHT *
-          calculateBM25(
-            inverseDocumentFrequency,
-            prevVideo.titleTF,
-            titleTokens.length,
-            averageDocumentLength.titleLength,
-          );
-        prevVideo.score +=
-          DESCRIPTION_WEIGHT *
-          calculateBM25(
-            inverseDocumentFrequency,
-            prevVideo.descriptionTF,
-            descriptionTokens.length,
-            averageDocumentLength.descriptionLength,
-          );
-        prevVideo.score +=
-          TRANSCRIPT_WEIGHT *
-          calculateBM25(
-            inverseDocumentFrequency,
-            prevVideo.transcriptTF,
-            transcriptTokens.length,
-            averageDocumentLength.transcriptLength,
-          );
-        prevVideo.score +=
-          TAG_WEIGHT *
-          calculateBM25(
-            inverseDocumentFrequency,
-            prevVideo.tagTF,
-            tagTokens.length,
-            averageDocumentLength.tagLength,
-          );
+        prevVideo.score = calculateBM25F(
+          inverseDocumentFrequency,
+          prevVideo,
+          fieldTokens,
+          averageDocumentLength,
+        );
       });
 
       keyword.videos.push({
         videoId: video._id,
         youtubeVideoId: video.youtubeVideoId,
         TF: termFrequency,
-        titleTF: titleTermFrequency,
-        descriptionTF: descriptionTermFrequency,
-        transcriptTF: transcriptTermFrequency,
-        tagTF: tagTermFrequency,
-        score:
-          TITLE_WEIGHT *
-            calculateBM25(
-              inverseDocumentFrequency,
-              titleTermFrequency,
-              titleTokens.length,
-              averageDocumentLength.titleLength,
-            ) +
-          DESCRIPTION_WEIGHT *
-            calculateBM25(
-              inverseDocumentFrequency,
-              descriptionTermFrequency,
-              descriptionTokens.length,
-              averageDocumentLength.descriptionLength,
-            ) +
-          TRANSCRIPT_WEIGHT *
-            (calculateBM25(
-              inverseDocumentFrequency,
-              transcriptTermFrequency,
-              transcriptTokens.length,
-              averageDocumentLength.transcriptLength,
-            ) || 0) +
-          TAG_WEIGHT *
-            (calculateBM25(
-              inverseDocumentFrequency,
-              tagTermFrequency,
-              tagTokens.length,
-              averageDocumentLength.tagLength,
-            ) || 0),
+        titleTF: TFs.titleTF,
+        descriptionTF: TFs.descriptionTF,
+        transcriptTF: TFs.transcriptTF,
+        tagTF: TFs.tagTF,
+        score: calculateBM25F(
+          inverseDocumentFrequency,
+          TFs,
+          fieldTokens,
+          averageDocumentLength,
+        ),
       });
 
       keyword.videos = keyword.videos.sort((a, b) => b.score - a.score);
@@ -220,39 +158,16 @@ async function saveKeywords(
                 videoId: video._id,
                 youtubeVideoId: video.youtubeVideoId,
                 TF: termFrequency,
-                titleTF: titleTermFrequency,
-                descriptionTF: descriptionTermFrequency,
-                transcriptTF: transcriptTermFrequency,
-                tagTF: tagTermFrequency,
-                score:
-                  TITLE_WEIGHT *
-                    calculateBM25(
-                      inverseDocumentFrequency,
-                      titleTermFrequency,
-                      titleTokens.length,
-                      averageDocumentLength.titleLength,
-                    ) +
-                  DESCRIPTION_WEIGHT *
-                    calculateBM25(
-                      inverseDocumentFrequency,
-                      descriptionTermFrequency,
-                      descriptionTokens.length,
-                      averageDocumentLength.descriptionLength,
-                    ) +
-                  TRANSCRIPT_WEIGHT *
-                    (calculateBM25(
-                      inverseDocumentFrequency,
-                      transcriptTermFrequency,
-                      transcriptTokens.length,
-                      averageDocumentLength.transcriptLength,
-                    ) || 0) +
-                  TAG_WEIGHT *
-                    (calculateBM25(
-                      inverseDocumentFrequency,
-                      tagTermFrequency,
-                      tagTokens.length,
-                      averageDocumentLength.tagLength,
-                    ) || 0),
+                titleTF: TFs.titleTF,
+                descriptionTF: TFs.descriptionTF,
+                transcriptTF: TFs.transcriptTF,
+                tagTF: TFs.tagTF,
+                score: calculateBM25F(
+                  inverseDocumentFrequency,
+                  TFs,
+                  fieldTokens,
+                  averageDocumentLength,
+                ),
               },
             ],
             IDF: inverseDocumentFrequency,
@@ -286,18 +201,16 @@ async function insertIntoDB(newVideoObject, session) {
   );
   const tagTokens = analyzeText(video.tag).map((token) => stemWord(token));
 
-  await saveAverageDocumentLength(video, session);
-  await saveOriginalKeywords(tokens, session);
-  await saveKeywords(
-    video,
-    words,
-    originalWords,
+  const fieldTokens = {
     titleTokens,
     descriptionTokens,
     transcriptTokens,
     tagTokens,
-    session,
-  );
+  };
+
+  await saveAverageDocumentLength(video, session);
+  await saveOriginalKeywords(tokens, session);
+  await saveKeywords(video, words, originalWords, fieldTokens, session);
 }
 
 module.exports = insertIntoDB;
