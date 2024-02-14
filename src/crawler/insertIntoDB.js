@@ -107,8 +107,8 @@ async function saveKeywords(video, words, originalWords, fieldTokens, session) {
     const TFs = {
       titleTF: calculateTF(fieldTokens.titleTokens, word),
       descriptionTF: calculateTF(fieldTokens.descriptionTokens, word),
-      transcriptTF: calculateTF(fieldTokens.descriptionTokens, word),
-      tagTermTF: calculateTF(fieldTokens.transcriptTokens, word),
+      transcriptTF: calculateTF(fieldTokens.transcriptTokens, word),
+      tagTF: calculateTF(fieldTokens.tagTokens, word),
     };
 
     if (keyword) {
