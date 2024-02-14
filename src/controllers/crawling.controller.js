@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
 const { crawl } = require("../crawler/crawl");
+const { pageRanking } = require("../crawler/pageRanking");
 
 let clients = [];
 let linksQueue = [];
@@ -50,6 +51,8 @@ exports.startCrawling = async function (req, res, next) {
         client.res.write(`data: ${JSON.stringify(newVideoObject)}\n\n`);
       });
     }
+
+    await pageRanking();
 
     res.status(200).send({ result: "ok", message: "crawling finish" });
   } catch (error) {
