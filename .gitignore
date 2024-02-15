@@ -1,4 +1,6 @@
 node_modules
+eng.traineddata
+screenshot.png
 .DS_Store
 .env
 .vscode/*
