@@ -27,5 +27,6 @@ module.exports = {
     "func-names": "off",
     "no-unused-vars": "warn",
     "no-param-reassign": 0,
+    "no-await-in-loop": 0,
   },
 };
