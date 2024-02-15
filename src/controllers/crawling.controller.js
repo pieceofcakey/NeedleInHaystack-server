@@ -1,5 +1,7 @@
 const { v4: uuidv4 } = require("uuid");
 const { crawl } = require("../crawler/crawl");
+const { setPageRank } = require("../crawler/setPageRank");
+const { rank } = require("../crawler/rank");
 
 let clients = [];
 let linksQueue = [];
@@ -41,15 +43,36 @@ exports.startCrawling = async function (req, res, next) {
     linksQueue = [];
 
     while (!shouldStopCrawling) {
-      crawlURL = linksQueue.length === 0 ? entryURL : linksQueue.shift();
+      try {
+        crawlURL = linksQueue.length === 0 ? entryURL : linksQueue.shift();
 
-      const { newVideoObject, newLinksQueue } = await crawl(crawlURL);
-      linksQueue = linksQueue.concat(newLinksQueue);
+        const { newVideoObject, newLinksQueue } = await crawl(crawlURL);
+        linksQueue = linksQueue.concat(newLinksQueue);
 
-      clients.forEach((client) => {
-        client.res.write(`data: ${JSON.stringify(newVideoObject)}\n\n`);
-      });
+        clients.forEach((client) => {
+          client.res.write(
+            `data: ${JSON.stringify({ result: "ok", message: "succeed", title: newVideoObject.title, url: newVideoObject.youtubeVideoId })}\n\n`,
+          );
+        });
+      } catch (error) {
+        console.log(error);
+
+        clients.forEach((client) => {
+          client.res.write(
+            `data: ${JSON.stringify({ result: "ng", message: "fail" })}\n\n`,
+          );
+        });
+      }
     }
+
+    clients.forEach((client) => {
+      client.res.write(
+        `data: ${JSON.stringify({ result: "ok", message: "ranking videos", title: "db" })}\n\n`,
+      );
+    });
+
+    await setPageRank();
+    await rank();
 
     res.status(200).send({ result: "ok", message: "crawling finish" });
   } catch (error) {

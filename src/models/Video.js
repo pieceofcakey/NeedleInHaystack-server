@@ -60,6 +60,24 @@ const videoSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  forwardLinks: {
+    type: Array,
+    default: [],
+    required: true,
+  },
+  backwardLinks: {
+    type: Array,
+    default: [],
+    required: true,
+  },
+  allForwardLinks: {
+    type: Array,
+    default: [],
+    required: true,
+  },
+  pageRankScore: {
+    type: mongoose.Decimal128,
+  },
 });
 
 videoSchema.pre("validate", function (next) {

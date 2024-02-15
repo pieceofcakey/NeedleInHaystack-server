@@ -65,12 +65,12 @@ async function crawl(url) {
   }
 
   const links = await page.$$eval(LINKS_SELECTOR, (elements) => {
-    return Array.from(elements)
-      .map((element) => element.href)
-      .slice(0, 5);
+    return Array.from(elements).map((element) => element.href);
   });
 
-  const linksPromises = links.map(async (link) => {
+  const allForwardLinks = [];
+
+  const linksPromises = links.slice(0, 5).map(async (link) => {
     const videoData = await Video.findOne({
       youtubeVideoId: link.split("=")[1],
     }).lean();
@@ -81,6 +81,12 @@ async function crawl(url) {
   });
 
   await Promise.all(linksPromises);
+
+  links.forEach((link) => {
+    allForwardLinks.push(link.split("=")[1]);
+  });
+
+  newVideoObject.allForwardLinks = allForwardLinks;
 
   try {
     newVideoObject.title = await page.$eval(

@@ -21,27 +21,27 @@ const keywordSchema = new mongoose.Schema({
         },
         TF: {
           type: Number,
-          default: 1,
+          default: 0,
           required: true,
         },
         titleTF: {
           type: Number,
-          default: 1,
+          default: 0,
           required: true,
         },
         descriptionTF: {
           type: Number,
-          default: 1,
+          default: 0,
           required: true,
         },
         transcriptTF: {
           type: Number,
-          default: 1,
+          default: 0,
           required: true,
         },
         tagTF: {
           type: Number,
-          default: 1,
+          default: 0,
           required: true,
         },
         score: {
