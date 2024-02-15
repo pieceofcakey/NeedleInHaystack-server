@@ -1,9 +1,12 @@
 const englishWords = require("an-array-of-english-words");
+const jsWords = require("./jsWords");
+
 const Trie = require("./trie");
 
 const trie = new Trie();
+const validWords = [...englishWords, ...jsWords];
 
-englishWords.forEach((word) => trie.insert(word.toLowerCase()));
+validWords.forEach((word) => trie.insert(word.toLowerCase()));
 
 function generateNGrams(input, n) {
   const ngrams = [];
@@ -61,7 +64,7 @@ function checkSpell(misspelledWord) {
 
   const suggestions = [];
 
-  const filtered = englishWords.filter((el) => {
+  const filtered = validWords.filter((el) => {
     const shouldHaveSimilarLength =
       el.length <= misspelledWord.length + 3 ||
       el.length >= misspelledWord.length - 3;
