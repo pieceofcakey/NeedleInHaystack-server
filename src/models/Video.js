@@ -65,7 +65,7 @@ const videoSchema = new mongoose.Schema({
     default: [],
     required: true,
   },
-  backLinks: {
+  backwardLinks: {
     type: Array,
     default: [],
     required: true,
