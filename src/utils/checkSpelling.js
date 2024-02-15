@@ -1,17 +1,14 @@
-const OriginalKeyword = require("../models/OriginalKeyword");
+const englishWords = require("an-array-of-english-words");
+const Trie = require("./trie");
 
-async function getOriginalKeywords() {
-  const correctWords = await OriginalKeyword.findOne({
-    name: "originalKeywords",
-  }).lean();
+const trie = new Trie();
 
-  return correctWords.value;
-}
+englishWords.forEach((word) => trie.insert(word.toLowerCase()));
 
 function generateNGrams(input, n) {
   const ngrams = [];
 
-  for (let i = 0; i < input.length - n + 1; i++) {
+  for (let i = 0; i < input.length - n + 1; i += 1) {
     ngrams.push(input.slice(i, i + n));
   }
 
@@ -42,10 +39,9 @@ function soundex(word) {
 
   const firstLetter = word.charAt(0).toLowerCase();
   let soundexCode = firstLetter.toUpperCase();
-
   let prevCode = codes[firstLetter];
 
-  for (let i = 1; i < word.length; i++) {
+  for (let i = 1; i < word.length; i += 1) {
     const letter = word.charAt(i).toLowerCase();
     const code = codes[letter];
 
@@ -59,13 +55,26 @@ function soundex(word) {
   return soundexCode.padEnd(4, "0").slice(0, 4);
 }
 
-async function checkSpell(misspelledWord) {
+function checkSpell(misspelledWord) {
   const biGramsOfMisspelledWord = generateNGrams(misspelledWord, 2);
   const misspelledSoundex = soundex(misspelledWord);
-  const allCorrectWords = await getOriginalKeywords();
+
   const suggestions = [];
 
-  for (const correctWord of allCorrectWords) {
+  const filtered = englishWords.filter((el) => {
+    const lengthCondition =
+      el.length <= misspelledWord.length + 3 ||
+      el.length >= misspelledWord.length - 3;
+    const firstLetterCondition = el.startsWith(misspelledWord[0]);
+
+    if (lengthCondition && firstLetterCondition) {
+      return el;
+    }
+
+    return null;
+  });
+
+  filtered.forEach((correctWord) => {
     const biGramsOfCorrectWord = generateNGrams(correctWord, 2);
     const correctSoundex = soundex(correctWord);
     const intersection = biGramsOfMisspelledWord.filter((element) =>
@@ -83,24 +92,22 @@ async function checkSpell(misspelledWord) {
         similarityScore,
       });
     }
-  }
+  });
 
   suggestions.sort((a, b) => b.similarityScore - a.similarityScore);
 
   return suggestions[0];
 }
 
-async function checkUserInputSpelling(userInput) {
-  const suggestions = await Promise.all(
-    userInput
-      .trim()
-      .split(" ")
-      .map((word) => checkSpell(word)),
-  );
+function checkUserInputSpelling(userInput) {
+  const userInputArray = userInput.trim().split(" ");
   const output = [];
-
-  suggestions.forEach((element) => {
-    output.push(element?.word);
+  userInputArray.forEach((word) => {
+    if (trie.search(word)) {
+      output.push(word);
+    } else {
+      output.push(checkSpell(word).word);
+    }
   });
 
   return output.join(" ");
