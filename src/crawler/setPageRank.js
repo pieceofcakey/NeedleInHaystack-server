@@ -2,7 +2,7 @@ const { DAMPING_FACTOR, ITERATIONS } = require("../constants/rankingConstants");
 
 const Video = require("../models/Video");
 
-async function setBackLinks() {
+async function setBackwardLinks() {
   try {
     const videos = await Video.find();
 
@@ -18,9 +18,9 @@ async function setBackLinks() {
           if (
             forwardVideo &&
             forwardVideo.youtubeVideoId !== video.youtubeVideoId &&
-            !forwardVideo.backLinks.includes(video.youtubeVideoId)
+            !forwardVideo.backwardLinks.includes(video.youtubeVideoId)
           ) {
-            forwardVideo.backLinks.push(video.youtubeVideoId);
+            forwardVideo.backwardLinks.push(video.youtubeVideoId);
 
             await forwardVideo.save();
           }
@@ -57,12 +57,12 @@ async function calculatePageRank(dampingFactor, iterations) {
     });
 
     for (let i = 0; i < iterations; i += 1) {
-      await Promise.allSettled(
+      await Promise.all(
         videos.map(async (video) => {
           let newRank = 0;
           const targetYoutubeVideoId = video.youtubeVideoId;
 
-          const newRankPromises = video.backLinks.map(
+          const newRankPromises = video.backwardLinks.map(
             async (youtubeVideoId) => {
               const targetVideo = await Video.findOne({
                 youtubeVideoId,
@@ -97,11 +97,11 @@ async function calculatePageRank(dampingFactor, iterations) {
   }
 }
 
-async function pageRanking() {
+async function setPageRank() {
   console.log("Start calculating page rank");
 
   try {
-    await setBackLinks();
+    await setBackwardLinks();
     await calculatePageRank(DAMPING_FACTOR, ITERATIONS);
     console.log("Finish calculating page rank");
   } catch (error) {
@@ -109,4 +109,4 @@ async function pageRanking() {
   }
 }
 
-module.exports = { pageRanking };
+module.exports = { setPageRank };

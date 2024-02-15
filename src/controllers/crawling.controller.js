@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
 const { crawl } = require("../crawler/crawl");
-const { pageRanking } = require("../crawler/pageRanking");
+const { setPageRank } = require("../crawler/setPageRank");
 const { rank } = require("../crawler/rank");
 
 let clients = [];
@@ -71,7 +71,7 @@ exports.startCrawling = async function (req, res, next) {
       );
     });
 
-    await pageRanking();
+    await setPageRank();
     await rank();
 
     res.status(200).send({ result: "ok", message: "crawling finish" });
