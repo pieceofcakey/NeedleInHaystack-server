@@ -6,7 +6,7 @@ const TRANSCRIPT_WEIGHT = 0.2;
 const TAG_WEIGHT = 0.1;
 
 const DAMPING_FACTOR = 0.85;
-const ITERATIONS = 10;
+const MAX_ITERATIONS = 10;
 
 module.exports = {
   K1,
@@ -16,5 +16,5 @@ module.exports = {
   TRANSCRIPT_WEIGHT,
   TAG_WEIGHT,
   DAMPING_FACTOR,
-  ITERATIONS,
+  MAX_ITERATIONS,
 };
