@@ -62,12 +62,12 @@ function checkSpell(misspelledWord) {
   const suggestions = [];
 
   const filtered = englishWords.filter((el) => {
-    const lengthCondition =
+    const shouldHaveSimilarLength =
       el.length <= misspelledWord.length + 3 ||
       el.length >= misspelledWord.length - 3;
-    const firstLetterCondition = el.startsWith(misspelledWord[0]);
+    const shouldStartWithSameLetter = el.startsWith(misspelledWord[0]);
 
-    if (lengthCondition && firstLetterCondition) {
+    if (shouldHaveSimilarLength && shouldStartWithSameLetter) {
       return el;
     }
 

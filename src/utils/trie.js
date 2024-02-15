@@ -8,7 +8,7 @@ class Trie {
   insert(word) {
     let node = this.root;
 
-    word.split(" ").forEach((char) => {
+    word.split("").forEach((char) => {
       if (!node.children.has(char)) {
         node.children.set(char, new TrieNode());
       }
