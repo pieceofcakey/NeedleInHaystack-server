@@ -9,7 +9,8 @@ async function rank() {
     await Promise.all(
       keywords.map(async (keyword) => {
         keyword.videos.forEach((video) => {
-          video.score *= parseFloat(video.videoId.pageRankScore, 10);
+          video.score =
+            video.scoreBM * (1 + parseFloat(video.videoId.pageRankScore, 10));
         });
 
         keyword.videos = keyword.videos.sort(
