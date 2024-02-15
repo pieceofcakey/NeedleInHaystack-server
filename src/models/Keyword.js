@@ -49,6 +49,11 @@ const keywordSchema = new mongoose.Schema({
           default: 0,
           required: true,
         },
+        scoreBM: {
+          type: mongoose.Decimal128,
+          default: 0,
+          required: true,
+        },
       },
     ],
     default: [],
