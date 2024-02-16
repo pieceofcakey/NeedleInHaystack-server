@@ -11,19 +11,12 @@ exports.searchVideos = async function (req, res, next) {
 
   let userData;
 
-  try {
+  if (accessToken) {
     userData = jwt.verify(accessToken, process.env.JWT_SECRET_KEY);
-  } catch (error) {
-    console.error(error);
-  }
-
-  if (!userQuery.trim()) {
-    res.status(200).send({ result: "null", videos: [], query: userQuery });
-    return;
   }
 
   try {
-    const recommendedSearchKeyword = await checkUserInputSpelling(userQuery);
+    const recommendedSearchKeyword = checkUserInputSpelling(userQuery);
     const correctedInput = shouldCheckSpell
       ? recommendedSearchKeyword
       : userQuery;
