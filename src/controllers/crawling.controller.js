@@ -1,7 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
 const { crawl } = require("../crawler/crawl");
 const { setPageRank } = require("../crawler/setPageRank");
-const { rank } = require("../crawler/rank");
 
 let clients = [];
 let linksQueue = [];
@@ -65,14 +64,13 @@ exports.startCrawling = async function (req, res, next) {
       }
     }
 
+    await setPageRank();
+
     clients.forEach((client) => {
       client.res.write(
         `data: ${JSON.stringify({ result: "ok", message: "ranking videos", title: "db" })}\n\n`,
       );
     });
-
-    await setPageRank();
-    await rank();
 
     res.status(200).send({ result: "ok", message: "crawling finish" });
   } catch (error) {

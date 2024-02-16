@@ -1,4 +1,5 @@
 const math = require("mathjs");
+
 const {
   DAMPING_FACTOR,
   MAX_ITERATIONS,
@@ -37,7 +38,7 @@ async function setForwardLinks() {
   }
 }
 
-async function calculatePageRankMathJS() {
+async function calculatePageRank() {
   const adjacencyMatrix = [];
   const videos = await Video.find().lean();
   const videosIds = videos.map((video) => video.youtubeVideoId);
@@ -90,11 +91,9 @@ async function setPageRank() {
   await setForwardLinks();
   console.log("set forward links");
 
-  await calculatePageRankMathJS();
+  await calculatePageRank();
 
   console.log("Finish calculating page rank");
 }
-
-setPageRank();
 
 module.exports = { setPageRank };
