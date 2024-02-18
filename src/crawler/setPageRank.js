@@ -1,8 +1,16 @@
-const { DAMPING_FACTOR, ITERATIONS } = require("../constants/rankingConstants");
+const math = require("mathjs");
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "../../.env") });
+const mongooseLoader = require("../loaders/mongoose");
+
+const {
+  DAMPING_FACTOR,
+  MAX_ITERATIONS,
+} = require("../constants/rankingConstants");
 
 const Video = require("../models/Video");
 
-async function setBackwardLinks() {
+async function setForwardLinks() {
   try {
     const videos = await Video.find();
 
@@ -15,20 +23,7 @@ async function setBackwardLinks() {
             youtubeVideoId: forwardLink,
           });
 
-          if (
-            forwardVideo &&
-            forwardVideo.youtubeVideoId !== video.youtubeVideoId &&
-            !forwardVideo.backwardLinks.includes(video.youtubeVideoId)
-          ) {
-            forwardVideo.backwardLinks.push(video.youtubeVideoId);
-
-            await forwardVideo.save();
-          }
-
-          if (
-            forwardVideo &&
-            forwardVideo.youtubeVideoId !== video.youtubeVideoId
-          ) {
+          if (forwardVideo && forwardLink !== video.youtubeVideoId) {
             forwardLinks.push(forwardLink);
           }
         }),
@@ -46,67 +41,63 @@ async function setBackwardLinks() {
   }
 }
 
-async function calculatePageRank(dampingFactor, iterations) {
-  try {
-    const pageRank = {};
-    const videos = await Video.find().lean();
-    const totalVideos = await Video.estimatedDocumentCount().lean();
+async function calculatePageRank() {
+  const adjacencyMatrix = [];
+  const videos = await Video.find().lean();
+  const videosIds = videos.map((video) => video.youtubeVideoId);
+  const numPages = videos.length;
 
-    videos.forEach((video) => {
-      pageRank[video.youtubeVideoId] = 1 / totalVideos;
-    });
+  await Promise.all(
+    videos.map(async (video) => {
+      const arr = new Array(numPages).fill(0);
 
-    for (let i = 0; i < iterations; i += 1) {
-      await Promise.all(
-        videos.map(async (video) => {
-          let newRank = 0;
-          const targetYoutubeVideoId = video.youtubeVideoId;
+      video.forwardLinks.forEach((forwardLink) => {
+        arr[videosIds.indexOf(forwardLink)] = 1;
+      });
 
-          const newRankPromises = video.backwardLinks.map(
-            async (youtubeVideoId) => {
-              const targetVideo = await Video.findOne({
-                youtubeVideoId,
-              }).lean();
+      adjacencyMatrix.push(arr);
+    }),
+  );
 
-              newRank +=
-                pageRank[youtubeVideoId] /
-                (targetVideo.forwardLinks.length || totalVideos);
-            },
-          );
+  const teleportationProb = (1 - DAMPING_FACTOR) / numPages;
 
-          await Promise.all(newRankPromises);
+  let pageRank = math.ones(numPages).map((val) => val / numPages);
+  const outDegree = adjacencyMatrix.map((row) => math.sum(row));
+  const stochasticMatrix = adjacencyMatrix.map((row, i) =>
+    row.map((val) => val / (outDegree[i] || numPages)),
+  );
 
-          newRank = (1 - dampingFactor) / totalVideos + dampingFactor * newRank;
+  for (let iteration = 0; iteration < MAX_ITERATIONS; iteration += 1) {
+    const prevPageRank = pageRank;
 
-          pageRank[targetYoutubeVideoId] = newRank;
-        }),
-      );
-    }
-
-    await Promise.all(
-      Object.keys(pageRank).map(async (youtubeVideoId) => {
-        const video = await Video.findOne({ youtubeVideoId });
-
-        video.pageRankScore = pageRank[youtubeVideoId];
-
-        await video.save();
-      }),
+    pageRank = math.add(
+      math.multiply(DAMPING_FACTOR, math.multiply(pageRank, stochasticMatrix)),
+      math.multiply(teleportationProb, math.sum(prevPageRank)),
     );
-  } catch (error) {
-    console.error(error);
   }
+
+  await Promise.all(
+    videos.map(async (video, index) => {
+      const pageRankScore = pageRank.toArray()[index];
+
+      await Video.findOneAndUpdate(
+        { youtubeVideoId: video.youtubeVideoId },
+        { pageRankScore },
+      );
+    }),
+  );
 }
 
 async function setPageRank() {
+  await mongooseLoader();
   console.log("Start calculating page rank");
 
-  try {
-    await setBackwardLinks();
-    await calculatePageRank(DAMPING_FACTOR, ITERATIONS);
-    console.log("Finish calculating page rank");
-  } catch (error) {
-    console.error(error.message);
-  }
+  await setForwardLinks();
+  console.log("set forward links");
+
+  await calculatePageRank();
+
+  console.log("Finish calculating page rank");
 }
 
-module.exports = { setPageRank };
+setPageRank();

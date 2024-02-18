@@ -13,3 +13,4 @@ screenshot.png
 !.elasticbeanstalk/*.global.yml
 
 coverage
+screenshot

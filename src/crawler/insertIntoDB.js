@@ -118,13 +118,23 @@ async function saveKeywords(video, words, originalWords, fieldTokens, session) {
       );
 
       keyword.videos.forEach((prevVideo) => {
-        prevVideo.score = calculateBM25F(
+        const scoreBM = calculateBM25F(
           inverseDocumentFrequency,
           prevVideo,
           fieldTokens,
           averageDocumentLength,
         );
+
+        prevVideo.scoreBM = scoreBM;
+        prevVideo.score = scoreBM;
       });
+
+      const scoreBM = calculateBM25F(
+        inverseDocumentFrequency,
+        TFs,
+        fieldTokens,
+        averageDocumentLength,
+      );
 
       keyword.videos.push({
         videoId: video._id,
@@ -134,21 +144,26 @@ async function saveKeywords(video, words, originalWords, fieldTokens, session) {
         descriptionTF: TFs.descriptionTF,
         transcriptTF: TFs.transcriptTF,
         tagTF: TFs.tagTF,
-        score: calculateBM25F(
-          inverseDocumentFrequency,
-          TFs,
-          fieldTokens,
-          averageDocumentLength,
-        ),
+        score: scoreBM,
+        scoreBM,
       });
 
-      keyword.videos = keyword.videos.sort((a, b) => b.score - a.score);
+      keyword.videos = keyword.videos.sort(
+        (videoOne, VideoTwo) => VideoTwo.scoreBM - videoOne.scoreBM,
+      );
       keyword.IDF = inverseDocumentFrequency;
 
       await keyword.save();
     } else {
       const inverseDocumentFrequency = Math.log(
         (totalVideos - 1 + 0.5) / (1 + 0.5) + 1,
+      );
+
+      const scoreBM = calculateBM25F(
+        inverseDocumentFrequency,
+        TFs,
+        fieldTokens,
+        averageDocumentLength,
       );
 
       await Keyword.create(
@@ -164,12 +179,8 @@ async function saveKeywords(video, words, originalWords, fieldTokens, session) {
                 descriptionTF: TFs.descriptionTF,
                 transcriptTF: TFs.transcriptTF,
                 tagTF: TFs.tagTF,
-                score: calculateBM25F(
-                  inverseDocumentFrequency,
-                  TFs,
-                  fieldTokens,
-                  averageDocumentLength,
-                ),
+                score: scoreBM,
+                scoreBM,
               },
             ],
             IDF: inverseDocumentFrequency,
