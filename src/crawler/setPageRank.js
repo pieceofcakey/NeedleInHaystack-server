@@ -1,4 +1,7 @@
 const math = require("mathjs");
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "../../.env") });
+const mongooseLoader = require("../loaders/mongoose");
 
 const {
   DAMPING_FACTOR,
@@ -86,6 +89,7 @@ async function calculatePageRank() {
 }
 
 async function setPageRank() {
+  await mongooseLoader();
   console.log("Start calculating page rank");
 
   await setForwardLinks();
@@ -96,4 +100,4 @@ async function setPageRank() {
   console.log("Finish calculating page rank");
 }
 
-module.exports = { setPageRank };
+setPageRank();
