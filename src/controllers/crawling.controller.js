@@ -1,6 +1,5 @@
 const { v4: uuidv4 } = require("uuid");
 const { crawl } = require("../crawler/crawl");
-const { setPageRank } = require("../crawler/setPageRank");
 
 let clients = [];
 let linksQueue = [];
@@ -36,12 +35,14 @@ exports.streamCrawling = async function (req, res) {
 
 exports.startCrawling = async function (req, res, next) {
   const { entryURL } = req.query;
+  const maxCrawlPages = req.query.maxCrawlPages || 1;
 
   try {
     shouldStopCrawling = false;
     linksQueue = [];
+    let crawledPages = 0;
 
-    while (!shouldStopCrawling) {
+    while (!shouldStopCrawling && crawledPages < maxCrawlPages) {
       try {
         crawlURL = linksQueue.length === 0 ? entryURL : linksQueue.shift();
 
@@ -53,6 +54,8 @@ exports.startCrawling = async function (req, res, next) {
             `data: ${JSON.stringify({ result: "ok", message: "succeed", title: newVideoObject.title, url: newVideoObject.youtubeVideoId })}\n\n`,
           );
         });
+
+        crawledPages += 1;
       } catch (error) {
         console.log(error);
 
@@ -63,8 +66,6 @@ exports.startCrawling = async function (req, res, next) {
         });
       }
     }
-
-    await setPageRank();
 
     clients.forEach((client) => {
       client.res.write(
