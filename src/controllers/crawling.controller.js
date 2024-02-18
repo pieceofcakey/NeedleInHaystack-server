@@ -1,3 +1,4 @@
+const axios = require("axios");
 const { v4: uuidv4 } = require("uuid");
 const { crawl } = require("../crawler/crawl");
 
@@ -116,6 +117,42 @@ exports.verifyYoutubeUrl = async function (req, res, next) {
     res
       .status(200)
       .send({ result: "ng", message: "inCorrect youtube video url" });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      result: "ng",
+      errorMessage:
+        "Hmm...something seems to have gone wrong. Maybe try me again in a little bit.",
+    });
+  }
+};
+
+exports.autoCrawling = async function (req, res, next) {
+  const { videoId } = req.body;
+  console.log("start auto crawling server", videoId);
+  try {
+    const videosLinks = await axios.post(`${process.env.AWS_LAMBDA_LINKS}`, {
+      videoId,
+    });
+
+    console.log("get videos links", videosLinks.data);
+
+    const videoData = await axios.post(`${process.env.AWS_LAMBDA_VIDEOS}`, {
+      videoId: videosLinks.data[0],
+    });
+
+    console.log("get video data", videoData.data);
+
+    const response = await axios.post(`${process.env.AWS_LAMBDA_DB}`, {
+      videoData: videoData.data,
+    });
+
+    console.log("insert video data into DB");
+
+    res
+      .status(200)
+      .send({ result: response.data.result, message: response.data.message });
   } catch (error) {
     console.log(error);
 
