@@ -77,7 +77,7 @@ async function calculatePageRank() {
     videos.map(async (video, index) => {
       const pageRankScore = pageRank.toArray()[index];
 
-      await Video.findOneAndUpdate(video._id, { pageRankScore });
+      await Video.findByIdAndUpdate(video._id, { pageRankScore });
     }),
   );
 }
