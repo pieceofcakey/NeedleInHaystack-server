@@ -23,21 +23,19 @@ async function combinePageRankAndBM25() {
           (videoOne, videoTwo) => videoTwo.score - videoOne.score,
         );
 
-        console.log(keyword.text);
         await keyword.save();
       }),
     );
   } catch (error) {
     console.error(error);
   }
+
   console.log("Finish Ranking for all keywords");
 }
 
 async function combineScores() {
   await mongooseLoader();
-  const start = Date.now();
   await combinePageRankAndBM25();
-  console.log(Date.now() - start);
 }
 
 combineScores();

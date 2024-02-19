@@ -29,10 +29,7 @@ async function setForwardLinks() {
         }),
       );
 
-      await Video.findOneAndUpdate(
-        { youtubeVideoId: video.youtubeVideoId },
-        { forwardLinks },
-      );
+      await Video.findByIdAndUpdate(video._id, { forwardLinks });
     });
 
     await Promise.all(videosPromises);
@@ -80,10 +77,7 @@ async function calculatePageRank() {
     videos.map(async (video, index) => {
       const pageRankScore = pageRank.toArray()[index];
 
-      await Video.findOneAndUpdate(
-        { youtubeVideoId: video.youtubeVideoId },
-        { pageRankScore },
-      );
+      await Video.findByIdAndUpdate(video._id, { pageRankScore });
     }),
   );
 }
