@@ -103,7 +103,7 @@ function checkSpell(misspelledWord) {
 }
 
 function checkUserInputSpelling(userInput) {
-  const userInputArray = userInput.trim().split(" ");
+  const userInputArray = userInput.toLowerCase().trim().split(" ");
   const output = [];
   userInputArray.forEach((word) => {
     if (trie.search(word)) {

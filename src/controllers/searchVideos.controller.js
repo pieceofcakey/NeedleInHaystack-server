@@ -6,7 +6,7 @@ const User = require("../models/User");
 
 exports.searchVideos = async function (req, res, next) {
   const { userInput, pageParam, shouldCheckSpell } = req.body;
-  const userQuery = userInput.join(" ");
+  const userQuery = userInput.join(" ").toLowerCase();
   const { accessToken } = req.cookies;
 
   let userData;
