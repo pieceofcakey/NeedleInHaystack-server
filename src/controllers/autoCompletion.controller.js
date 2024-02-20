@@ -92,7 +92,7 @@ exports.getAutoCompletions = async function (req, res, next) {
 };
 
 exports.deleteAutoCompletions = async function (req, res, next) {
-  const { history } = req.query;
+  const { historyToDelete } = req.query;
   const { accessToken } = req.cookies;
   const decodedToken = jwt.decode(accessToken);
   const { userId } = decodedToken;
@@ -100,8 +100,7 @@ exports.deleteAutoCompletions = async function (req, res, next) {
   const user = await User.findOne({
     _id: userId,
   });
-
-  const privateHistoryIndex = user.searchHistory.indexOf(history);
+  const privateHistoryIndex = user.searchHistory.indexOf(historyToDelete);
 
   user.searchHistory.splice(privateHistoryIndex, 1);
   user.save();
