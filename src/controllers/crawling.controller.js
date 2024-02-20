@@ -130,25 +130,19 @@ exports.verifyYoutubeUrl = async function (req, res, next) {
 
 exports.autoCrawling = async function (req, res, next) {
   const { videoId } = req.body;
-  console.log("start auto crawling server", videoId);
+
   try {
     const videosLinks = await axios.post(`${process.env.AWS_LAMBDA_LINKS}`, {
       videoId,
     });
 
-    console.log("get videos links", videosLinks.data);
-
     const videoData = await axios.post(`${process.env.AWS_LAMBDA_VIDEOS}`, {
       videoId: videosLinks.data[0],
     });
 
-    console.log("get video data", videoData.data);
-
     const response = await axios.post(`${process.env.AWS_LAMBDA_DB}`, {
       videoData: videoData.data,
     });
-
-    console.log("insert video data into DB");
 
     res
       .status(200)

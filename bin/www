@@ -1,5 +1,5 @@
 const http = require("http");
-const debug = require("debug")("pieceoftube-server:server");
+const debug = require("debug")("needleinhaystack-server:server");
 const app = require("../app");
 
 const port = normalizePort(process.env.PORT || "3000");
