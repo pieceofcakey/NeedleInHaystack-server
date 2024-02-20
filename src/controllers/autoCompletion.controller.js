@@ -5,7 +5,7 @@ const User = require("../models/User");
 exports.getAutoCompletions = async function (req, res, next) {
   const { accessToken } = req.cookies;
   const { userInput } = req.query;
-  const MAXIMUM_AUTO_COMPLETIONS = 5;
+  const MAXIMUM_AUTO_COMPLETIONS = 10;
   const searchHistories = [];
 
   let userData;
@@ -18,7 +18,7 @@ exports.getAutoCompletions = async function (req, res, next) {
 
   if (user) {
     const foundUser = await User.findById(user).lean();
-    const userSearchHistory = foundUser.searchHistory;
+    const userSearchHistory = foundUser.searchHistory.reverse();
 
     if (userInput) {
       const matchingItems = userSearchHistory.filter((item) => {
@@ -27,17 +27,34 @@ exports.getAutoCompletions = async function (req, res, next) {
         return regex.test(item);
       });
 
+      const matchingHistories = await Query.find(
+        { text: { $regex: `^${userInput}`, $options: "i" } },
+        {},
+      )
+        .lean()
+        .sort({ count: -1 });
+      const recommendedKeywords = [];
+
+      matchingHistories
+        .slice(0, MAXIMUM_AUTO_COMPLETIONS)
+        .forEach((element) => {
+          if (!matchingItems.includes(element.text)) {
+            recommendedKeywords.push(element.text);
+          }
+        });
+
       return res.status(200).send({
         result: "ok",
-        searchHistories: matchingItems.slice(0, MAXIMUM_AUTO_COMPLETIONS),
+        searchHistories: matchingItems
+          .concat(recommendedKeywords)
+          .slice(0, MAXIMUM_AUTO_COMPLETIONS),
+        referenceIndex: matchingItems.length,
       });
     }
 
     return res.status(200).send({
       result: "ok",
-      searchHistories: userSearchHistory
-        .reverse()
-        .slice(0, MAXIMUM_AUTO_COMPLETIONS),
+      searchHistories: userSearchHistory.slice(0, MAXIMUM_AUTO_COMPLETIONS),
     });
   }
 
@@ -72,4 +89,24 @@ exports.getAutoCompletions = async function (req, res, next) {
         "Hmm...something seems to have gone wrong. Maybe try me again in a little bit.",
     });
   }
+};
+
+exports.deleteAutoCompletions = async function (req, res, next) {
+  const { history } = req.query;
+  const { accessToken } = req.cookies;
+  const decodedToken = jwt.decode(accessToken);
+  const { userId } = decodedToken;
+
+  const user = await User.findOne({
+    _id: userId,
+  });
+
+  const privateHistoryIndex = user.searchHistory.indexOf(history);
+
+  user.searchHistory.splice(privateHistoryIndex, 1);
+  user.save();
+
+  return res.status(200).json({
+    result: "ok",
+  });
 };
