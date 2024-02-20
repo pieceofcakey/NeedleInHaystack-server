@@ -1,11 +1,7 @@
-const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "../../.env") });
-const mongooseLoader = require("../loaders/mongoose");
-
 const Keyword = require("../models/Keyword");
 const Video = require("../models/Video");
 
-async function combinePageRankAndBM25() {
+async function combineScores() {
   console.log("Start Ranking for all keywords");
 
   const keywords = await Keyword.find().populate("videos.videoId");
@@ -33,9 +29,4 @@ async function combinePageRankAndBM25() {
   console.log("Finish Ranking for all keywords");
 }
 
-async function combineScores() {
-  await mongooseLoader();
-  await combinePageRankAndBM25();
-}
-
-combineScores();
+module.exports = { combineScores };
