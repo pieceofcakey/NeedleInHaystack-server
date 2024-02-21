@@ -55,6 +55,7 @@ exports.getAutoCompletions = async function (req, res, next) {
     return res.status(200).send({
       result: "ok",
       searchHistories: userSearchHistory.slice(0, MAXIMUM_AUTO_COMPLETIONS),
+      referenceIndex: MAXIMUM_AUTO_COMPLETIONS,
     });
   }
 
