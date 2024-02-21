@@ -98,13 +98,11 @@ exports.deleteAutoCompletions = async function (req, res, next) {
   const decodedToken = jwt.decode(accessToken);
   const { userId } = decodedToken;
 
-  const user = await User.findOne({
-    _id: userId,
-  });
+  const user = await User.findById(userId);
   const privateHistoryIndex = user.searchHistory.indexOf(historyToDelete);
 
   user.searchHistory.splice(privateHistoryIndex, 1);
-  user.save();
+  await user.save();
 
   return res.status(200).json({
     result: "ok",
