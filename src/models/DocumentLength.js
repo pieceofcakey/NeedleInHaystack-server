@@ -1,3 +1,4 @@
+const { Decimal128 } = require("mongodb");
 const mongoose = require("mongoose");
 
 const documentLengthSchema = new mongoose.Schema({
@@ -7,23 +8,23 @@ const documentLengthSchema = new mongoose.Schema({
     required: true,
   },
   documentLength: {
-    type: Number,
+    type: Decimal128,
     required: true,
   },
   titleLength: {
-    type: Number,
+    type: Decimal128,
     required: true,
   },
   descriptionLength: {
-    type: Number,
+    type: Decimal128,
     required: true,
   },
   transcriptLength: {
-    type: Number,
+    type: Decimal128,
     required: true,
   },
   tagLength: {
-    type: Number,
+    type: Decimal128,
     required: true,
   },
 });
