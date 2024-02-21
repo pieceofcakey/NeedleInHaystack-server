@@ -8,4 +8,10 @@ const router = express.Router();
 
 router.get("/", verifyToken, autoCompletionsController.getAutoCompletions);
 
+router.delete(
+  "/",
+  verifyToken,
+  autoCompletionsController.deleteAutoCompletions,
+);
+
 module.exports = router;
