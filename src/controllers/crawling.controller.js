@@ -1,6 +1,8 @@
 const axios = require("axios");
 const { v4: uuidv4 } = require("uuid");
 const { crawl } = require("../crawler/crawl");
+const { setPageRank } = require("../crawler/setPageRank");
+const { combineScores } = require("../crawler/combineScores");
 
 let clients = [];
 let linksQueue = [];
@@ -147,6 +149,41 @@ exports.autoCrawling = async function (req, res, next) {
     res
       .status(200)
       .send({ result: response.data.result, message: response.data.message });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).send({
+      result: "ng",
+      errorMessage:
+        "Hmm...something seems to have gone wrong. Maybe try me again in a little bit.",
+    });
+  }
+};
+
+exports.pageRanking = async function (req, res, next) {
+  try {
+    await setPageRank();
+
+    res.status(200).send({ result: "ok", message: "succeed" });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).send({
+      result: "ng",
+      errorMessage:
+        "Hmm...something seems to have gone wrong. Maybe try me again in a little bit.",
+    });
+  }
+};
+
+exports.combineAllScores = async function (req, res, next) {
+  try {
+    await combineScores();
+
+    res.status(200).send({
+      result: "ok",
+      message: "succeed",
+    });
   } catch (error) {
     console.log(error);
 
