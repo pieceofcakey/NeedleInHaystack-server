@@ -152,7 +152,7 @@ exports.autoCrawling = async function (req, res, next) {
   } catch (error) {
     console.log(error);
 
-    res.status(500).json({
+    res.status(500).send({
       result: "ng",
       errorMessage:
         "Hmm...something seems to have gone wrong. Maybe try me again in a little bit.",
@@ -168,7 +168,7 @@ exports.pageRanking = async function (req, res, next) {
   } catch (error) {
     console.log(error);
 
-    res.status(500).json({
+    res.status(500).send({
       result: "ng",
       errorMessage:
         "Hmm...something seems to have gone wrong. Maybe try me again in a little bit.",

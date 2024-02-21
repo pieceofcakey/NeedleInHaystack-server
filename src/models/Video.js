@@ -36,6 +36,10 @@ const videoSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  profileImg: {
+    type: String,
+    required: true,
+  },
   tag: {
     type: String,
     required: true,

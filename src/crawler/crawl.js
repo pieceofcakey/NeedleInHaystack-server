@@ -22,6 +22,7 @@ const {
   CHANNEL_SELECTOR,
   TRANSCRIPT_SELECTOR,
   META_SELECTOR,
+  PROFILE_IMG_SELECTOR,
 } = require("../constants/crawlerConstants");
 
 async function crawl(url) {
@@ -111,6 +112,16 @@ async function crawl(url) {
       CHANNEL_SELECTOR,
       (element) => element.textContent,
     );
+  } catch (error) {
+    console.error(error);
+  }
+
+  try {
+    const photos = await page.$$eval(PROFILE_IMG_SELECTOR, (imgs) => {
+      return imgs.map((x) => x.src).filter((x) => x !== "");
+    });
+
+    [newVideoObject.profileImg] = photos;
   } catch (error) {
     console.error(error);
   }
