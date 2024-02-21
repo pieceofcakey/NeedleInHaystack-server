@@ -5,6 +5,9 @@ const Trie = require("./trie");
 
 const trie = new Trie();
 const validWords = [...englishWords, ...jsWords];
+const MIN_SIMILARITY_SCORE = 0.7;
+const SOUNDEX_MATCH_CONSTANT = 1;
+const SOUNDEX_UNMATCH_CONSTANT = 0.5;
 
 validWords.forEach((word) => trie.insert(word.toLowerCase()));
 
@@ -86,10 +89,12 @@ function checkSpell(misspelledWord) {
     const union = new Set([...biGramsOfMisspelledWord, ...biGramsOfCorrectWord])
       .size;
     const jaccardSimilarity = intersection / union;
-    const soundexMatch = misspelledSoundex === correctSoundex;
-    const similarityScore = jaccardSimilarity * (soundexMatch ? 1 : 0.5);
+    const isSoundexMatch = misspelledSoundex === correctSoundex;
+    const similarityScore =
+      jaccardSimilarity *
+      (isSoundexMatch ? SOUNDEX_MATCH_CONSTANT : SOUNDEX_UNMATCH_CONSTANT);
 
-    if (similarityScore > 0.5) {
+    if (similarityScore > MIN_SIMILARITY_SCORE) {
       suggestions.push({
         word: correctWord,
         similarityScore,
@@ -107,6 +112,8 @@ function checkUserInputSpelling(userInput) {
   const output = [];
   userInputArray.forEach((word) => {
     if (trie.search(word)) {
+      output.push(word);
+    } else if (checkSpell(word) === undefined) {
       output.push(word);
     } else {
       output.push(checkSpell(word).word);
