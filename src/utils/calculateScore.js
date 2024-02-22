@@ -15,9 +15,7 @@ function calculateBM25(IDF, TF, documentLength, averageDocumentLength) {
 }
 
 exports.calculateAverage = function (prevAverage, totalCount, documentLength) {
-  return Math.floor(
-    (prevAverage * (totalCount - 1) + documentLength) / totalCount,
-  );
+  return (prevAverage * (totalCount - 1) + documentLength) / totalCount;
 };
 
 exports.calculateIDF = function (totalDocuments, documents) {
@@ -42,28 +40,28 @@ exports.calculateBM25F = function (
         IDF,
         TFs.titleTF,
         fieldTokens.titleTokens.length,
-        averageDocumentLength.titleLength,
+        parseInt(averageDocumentLength.titleLength, 10),
       ) +
     DESCRIPTION_WEIGHT *
       calculateBM25(
         IDF,
         TFs.descriptionTF,
         fieldTokens.descriptionTokens.length,
-        averageDocumentLength.descriptionLength,
+        parseInt(averageDocumentLength.descriptionLength, 10),
       ) +
     TRANSCRIPT_WEIGHT *
       (calculateBM25(
         IDF,
         TFs.transcriptTF,
         fieldTokens.transcriptTokens.length,
-        averageDocumentLength.transcriptLength,
+        parseInt(averageDocumentLength.transcriptLength, 10),
       ) || 0) +
     TAG_WEIGHT *
       (calculateBM25(
         IDF,
         TFs.tagTF,
         fieldTokens.tagTokens.length,
-        averageDocumentLength.tagLength,
+        parseInt(averageDocumentLength.tagLength, 10),
       ) || 0);
 
   return score;
