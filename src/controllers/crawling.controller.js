@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require("uuid");
 const { crawl } = require("../crawler/crawl");
 const { setPageRank } = require("../crawler/setPageRank");
 const { combineScores } = require("../crawler/combineScores");
+const Link = require("../models/Link");
 
 let clients = [];
 let linksQueue = [];
@@ -149,6 +150,37 @@ exports.autoCrawling = async function (req, res, next) {
     res
       .status(200)
       .send({ result: response.data.result, message: response.data.message });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).send({
+      result: "ng",
+      errorMessage:
+        "Hmm...something seems to have gone wrong. Maybe try me again in a little bit.",
+    });
+  }
+};
+
+exports.saveVideoId = async function (req, res, next) {
+  const { videoId } = req.body;
+
+  try {
+    const linkData = await Link.findOne({ text: "videoId" });
+
+    if (!linkData) {
+      await Link.create({ text: "videoId", links: [videoId] });
+
+      res.status(200).send({ result: "ok", message: "save url to crawl" });
+      return;
+    }
+
+    if (!linkData.links.includes(videoId)) {
+      linkData.links.push(videoId);
+
+      await linkData.save();
+    }
+
+    res.status(200).send({ result: "ok", message: "save url to crawl" });
   } catch (error) {
     console.log(error);
 
