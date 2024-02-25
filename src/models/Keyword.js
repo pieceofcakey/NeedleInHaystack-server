@@ -20,27 +20,27 @@ const keywordSchema = new mongoose.Schema({
           required: true,
         },
         TF: {
-          type: Number,
+          type: mongoose.Decimal128,
           default: 0,
           required: true,
         },
         titleTF: {
-          type: Number,
+          type: mongoose.Decimal128,
           default: 0,
           required: true,
         },
         descriptionTF: {
-          type: Number,
+          type: mongoose.Decimal128,
           default: 0,
           required: true,
         },
         transcriptTF: {
-          type: Number,
+          type: mongoose.Decimal128,
           default: 0,
           required: true,
         },
         tagTF: {
-          type: Number,
+          type: mongoose.Decimal128,
           default: 0,
           required: true,
         },

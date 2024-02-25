@@ -25,7 +25,7 @@ exports.calculateIDF = function (totalDocuments, documents) {
 };
 
 exports.calculateTF = function (document, keyword) {
-  return document.filter((word) => keyword === word).length;
+  return document.filter((word) => keyword === word).length / document.length;
 };
 
 exports.calculateBM25F = function (
