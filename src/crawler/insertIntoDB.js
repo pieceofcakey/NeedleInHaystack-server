@@ -1,5 +1,4 @@
 const Keyword = require("../models/Keyword");
-const OriginalKeyword = require("../models/OriginalKeyword");
 const Video = require("../models/Video");
 const DocumentLength = require("../models/DocumentLength");
 
@@ -63,24 +62,6 @@ async function saveAverageDocumentLength(video, session) {
           tagLength: video.tagLength,
         },
       ],
-      { session },
-    );
-  }
-}
-
-async function saveOriginalKeywords(tokens, session) {
-  const originalKeyword = await OriginalKeyword.findOne({
-    name: "originalKeywords",
-  }).session(session);
-
-  if (originalKeyword) {
-    tokens.forEach((token) => originalKeyword.value.push(token));
-
-    originalKeyword.value = [...new Set(originalKeyword.value)];
-    await originalKeyword.save();
-  } else {
-    await OriginalKeyword.create(
-      [{ name: "originalKeywords", value: tokens }],
       { session },
     );
   }
@@ -222,7 +203,6 @@ async function insertIntoDB(newVideoObject, session) {
   };
 
   await saveAverageDocumentLength(video, session);
-  await saveOriginalKeywords(tokens, session);
   await saveKeywords(video, words, originalWords, fieldTokens, session);
 }
 
