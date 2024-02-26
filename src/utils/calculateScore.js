@@ -38,28 +38,28 @@ exports.calculateBM25F = function (
     TITLE_WEIGHT *
       calculateBM25(
         IDF,
-        TFs.titleTF,
+        parseFloat(TFs.titleTF),
         fieldTokens.titleTokens.length,
         parseInt(averageDocumentLength.titleLength, 10),
       ) +
     DESCRIPTION_WEIGHT *
       calculateBM25(
         IDF,
-        TFs.descriptionTF,
+        parseFloat(TFs.descriptionTF),
         fieldTokens.descriptionTokens.length,
         parseInt(averageDocumentLength.descriptionLength, 10),
       ) +
     TRANSCRIPT_WEIGHT *
       (calculateBM25(
         IDF,
-        TFs.transcriptTF,
+        parseFloat(TFs.transcriptTF),
         fieldTokens.transcriptTokens.length,
         parseInt(averageDocumentLength.transcriptLength, 10),
       ) || 0) +
     TAG_WEIGHT *
       (calculateBM25(
         IDF,
-        TFs.tagTF,
+        parseFloat(TFs.tagTF),
         fieldTokens.tagTokens.length,
         parseInt(averageDocumentLength.tagLength, 10),
       ) || 0);
