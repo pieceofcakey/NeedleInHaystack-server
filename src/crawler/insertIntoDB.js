@@ -130,7 +130,7 @@ async function saveKeywords(video, words, originalWords, fieldTokens, session) {
       });
 
       keyword.videos = keyword.videos.sort(
-        (videoOne, VideoTwo) => VideoTwo.scoreBM - videoOne.scoreBM,
+        (videoOne, VideoTwo) => VideoTwo.score - videoOne.score,
       );
       keyword.IDF = inverseDocumentFrequency;
 
