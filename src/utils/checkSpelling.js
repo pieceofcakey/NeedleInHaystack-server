@@ -5,7 +5,7 @@ const Trie = require("./trie");
 
 const trie = new Trie();
 const validWords = [...englishWords, ...jsWords];
-const MIN_SIMILARITY_SCORE = 0.7;
+const MIN_SIMILARITY_SCORE = 0.6;
 const SOUNDEX_MATCH_CONSTANT = 1;
 const SOUNDEX_UNMATCH_CONSTANT = 0.5;
 
@@ -110,6 +110,7 @@ function checkSpell(misspelledWord) {
 function checkUserInputSpelling(userInput) {
   const userInputArray = userInput.toLowerCase().trim().split(" ");
   const output = [];
+
   userInputArray.forEach((word) => {
     if (trie.search(word)) {
       output.push(word);
