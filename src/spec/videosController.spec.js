@@ -1,5 +1,5 @@
-const app = require("../../app");
 const request = require("supertest");
+const app = require("../../app");
 const { setupDB } = require("./setup");
 
 const Keyword = require("../models/Keyword");
@@ -33,7 +33,6 @@ describe("fetch Videos", () => {
           shouldCheckSpell: true,
         });
 
-      console.log(response.body);
       expect(response.statusCode).toBe(200);
       expect(response.body.result).toBe("ok");
       expect(response.body.videos.length).toBe(10);
@@ -53,7 +52,6 @@ describe("fetch Videos", () => {
           shouldCheckSpell: true,
         });
 
-      console.log(response.body);
       expect(response.statusCode).toBe(200);
       expect(response.body.result).toBe("null");
       expect(response.body.videos.length).toBe(0);
