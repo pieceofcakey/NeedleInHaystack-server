@@ -4,7 +4,7 @@ const { setupDB } = require("./setup");
 
 setupDB();
 
-describe.only("Auth Controller", () => {
+describe("Auth Controller", () => {
   describe("POST /signIn", () => {
     it("should create a new user and return token", async () => {
       const mockUser = {
@@ -21,6 +21,17 @@ describe.only("Auth Controller", () => {
       expect(response.body.message).toBe("login successful!");
       expect(response.body.user.email).toBe("test@test.com");
       expect(response.headers["set-cookie"]).toBeDefined();
+    });
+  });
+
+  describe("GET /signOut", () => {
+    it("should clear tokens", async () => {
+      const response = await request(app).get("/auth/signOut");
+      const cookie = response.headers["set-cookie"][0];
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body.message).toBe("logout successful");
+      expect(cookie).toMatch(/Expires=Thu, 01 Jan 1970 00:00:00 GMT/);
     });
   });
 });
